@@ -9,52 +9,6 @@
         <p-progressSpinner styleClass="w-4rem h-4rem" strokeWidth="4"></p-progressSpinner>
     </div>
 
-    <div class="w-full md:w-16rem surface-card shadow-2 border-round-xl p-2 md:p-3 flex-shrink-0 md:sticky md:top-0">
-        <div class="text-900 font-bold text-lg md:text-xl mb-2 md:mb-3 px-2 hidden md:block">User Groups</div>
-
-        <div class="flex flex-row md:flex-column gap-2 overflow-x-auto pb-2 md:pb-0">
-            <div class="p-ripple p-3 flex align-items-center justify-content-between cursor-pointer border-round transition-colors transition-duration-150 hover:surface-100 flex-shrink-0 min-w-max"
-                [class.surface-100]="selectedCategory === 'All'" [class.text-primary]="selectedCategory === 'All'"
-                (click)="setCategory('All')">
-                <div class="flex align-items-center gap-2">
-                    <i class="pi pi-users text-lg"></i>
-                    <span>All Users</span>
-                </div>
-                <p-badge [value]="getCount('All').toString()" severity="secondary" styleClass="ml-3"></p-badge>
-            </div>
-
-            <div class="p-ripple p-3 flex align-items-center justify-content-between cursor-pointer border-round transition-colors transition-duration-150 hover:surface-100 flex-shrink-0 min-w-max"
-                [class.surface-100]="selectedCategory === 'Internal'"
-                [class.text-primary]="selectedCategory === 'Internal'" (click)="setCategory('Internal')">
-                <div class="flex align-items-center gap-2">
-                    <i class="pi pi-id-card text-lg"></i>
-                    <span>Internal</span>
-                </div>
-                <p-badge [value]="getCount('Internal').toString()" severity="info" styleClass="ml-3"></p-badge>
-            </div>
-
-            <div class="p-ripple p-3 flex align-items-center justify-content-between cursor-pointer border-round transition-colors transition-duration-150 hover:surface-100 flex-shrink-0 min-w-max"
-                [class.surface-100]="selectedCategory === 'Hybrid'"
-                [class.text-purple-600]="selectedCategory === 'Hybrid'" (click)="setCategory('Hybrid')">
-                <div class="flex align-items-center gap-2">
-                    <i class="pi pi-cog text-lg"></i>
-                    <span>Hybrid</span>
-                </div>
-                <p-badge [value]="getCount('Hybrid').toString()" styleClass="ml-3 bg-purple-500 text-white"></p-badge>
-            </div>
-
-            <div class="p-ripple p-3 flex align-items-center justify-content-between cursor-pointer border-round transition-colors transition-duration-150 hover:surface-100 flex-shrink-0 min-w-max"
-                [class.surface-100]="selectedCategory === 'External'"
-                [class.text-primary]="selectedCategory === 'External'" (click)="setCategory('External')">
-                <div class="flex align-items-center gap-2">
-                    <i class="pi pi-briefcase text-lg"></i>
-                    <span>External</span>
-                </div>
-                <p-badge [value]="getCount('External').toString()" severity="warn" styleClass="ml-3"></p-badge>
-            </div>
-        </div>
-    </div>
-
 
     <div class="flex-1 flex flex-column gap-4 w-full overflow-hidden">
 
