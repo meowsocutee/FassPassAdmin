@@ -3,7 +3,7 @@ import { ParkingEditSidebarComponent } from './inbox-edit-sidebar/parking-edit-s
 import { ParkingHistorySidebarComponent } from './inbox-history-sidebar/parking-history-sidebar.component';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
+
 import { FormsModule } from '@angular/forms';
 
 // PrimeNG imports
@@ -43,7 +43,6 @@ import { takeUntil } from 'rxjs/operators';
     IconFieldModule,
     InputIconModule,
     HttpClientModule,
-    RouterOutlet,
     ProgressSpinnerModule
   ],
   templateUrl: './inbox.component.html',

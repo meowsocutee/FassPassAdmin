@@ -1,0 +1,76 @@
+<div class="flex h-screen w-full m-0 p-0 overflow-hidden">
+  <!-- Left Side: Login Form -->
+  <div class="h-full w-full lg:w-5 xl:w-4 flex flex-column align-items-center justify-content-center p-5 surface-0">
+    <div class="w-full flex flex-column w-full" style="max-width: 400px;">
+      
+      <div class="mb-5">
+        <h1 class="text-900 text-4xl font-bold mb-3">Log in</h1>
+        <div class="text-700 font-medium">Hi there!</div>
+        <div class="text-700 font-medium line-height-3">Enter your information to log in to your account.</div>
+      </div>
+
+      <!-- Error Message -->
+      <div *ngIf="errorMessage" class="p-3 mb-4 bg-red-100 text-red-700 border-round font-medium">
+        {{ errorMessage }}
+      </div>
+
+      <!-- Form -->
+      <form (ngSubmit)="onLogin()" #loginForm="ngForm" class="flex flex-column gap-4">
+        
+        <div class="flex flex-column gap-2">
+          <span class="p-input-icon-left w-full">
+            <i class="pi pi-envelope"></i>
+            <input 
+              pInputText 
+              id="email" 
+              type="email" 
+              [(ngModel)]="email" 
+              name="email" 
+              placeholder="Email address" 
+              class="w-full p-3 bg-blue-50 border-none border-round-md" 
+              required />
+          </span>
+        </div>
+
+        <div class="flex flex-column gap-2">
+          <span class="p-input-icon-left w-full">
+            <i class="pi pi-lock"></i>
+            <p-password 
+              id="password" 
+              [(ngModel)]="password" 
+              name="password" 
+              [toggleMask]="true" 
+              [feedback]="false"
+              placeholder="Password"
+              styleClass="w-full"
+              inputStyleClass="w-full p-3 bg-blue-50 border-none border-round-md pl-5"
+              required>
+            </p-password>
+          </span>
+        </div>
+
+        <div class="flex align-items-center justify-content-end w-full">
+          <a routerLink="/forgot-password" class="font-medium no-underline text-sm text-700 cursor-pointer hover:text-primary">
+            Forgot password?
+          </a>
+        </div>
+
+        <button 
+          pButton 
+          pRipple 
+          type="submit" 
+          label="Log in" 
+          class="w-full p-3 mt-2 text-white border-round-md border-none font-bold shadow-2 transition-colors transition-duration-200 fastpass-btn"
+          [loading]="loading">
+        </button>
+
+      </form>
+
+    </div>
+  </div>
+
+  <!-- Right Side: Background Image (Hidden on small screens) -->
+  <div class="h-full hidden lg:flex w-full lg:w-7 xl:w-8 bg-primary overflow-hidden login-bg-container relative">
+    <div class="login-bg-image absolute top-0 left-0 w-full h-full"></div>
+  </div>
+</div>

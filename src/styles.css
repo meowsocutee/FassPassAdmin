@@ -6,6 +6,16 @@
 @import "primeflex/primeflex.css";
 
 /* Apply font globally */
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 body, html, * {
   font-family: 'Inter', Arial, sans-serif;
 }

@@ -148,6 +148,10 @@ export class AppComponent implements OnInit, OnDestroy {
     return this.activeRoute === path || this.router.url === path;
   }
 
+  get isStandaloneLayout(): boolean {
+    return this.activeRoute.startsWith('/login') || this.activeRoute.startsWith('/forgot-password');
+  }
+
   navigate(path: string) {
     this.router.navigate([path]);
   }
