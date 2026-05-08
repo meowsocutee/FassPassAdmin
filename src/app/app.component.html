@@ -19,15 +19,17 @@
         </p-dropdown>
       </div>
 
-      <div *ngFor="let item of topMenu"
+      <ng-container *ngFor="let item of topMenu">
+        <div *ngIf="canSeeMenuItem(item)"
            class="p-ripple flex align-items-center p-3 border-round-md cursor-pointer text-700 transition-colors transition-duration-150 hover:surface-100"
            [class.surface-100]="isActive(item.route)"
            [class.text-primary]="isActive(item.route)"
            [class.font-bold]="isActive(item.route)"
            (click)="navigate(item.route); sidebarVisible = false"> 
            <i [class]="item.icon" class="text-xl mr-2"></i>
-        <span class="font-medium">{{ item.label }}</span>
-      </div>
+          <span class="font-medium">{{ item.label }}</span>
+        </div>
+      </ng-container>
     </div>
 
     <div class="flex flex-column gap-2">
@@ -110,14 +112,16 @@
     </div>
 
     <div class="flex flex-column gap-3 w-full">
-        <div *ngFor="let item of topMenu"
-             class="p-ripple flex align-items-center justify-content-center w-3rem h-3rem mx-auto border-round-xl cursor-pointer transition-all transition-duration-200"
-             [ngClass]="isActive(item.route) ? 'bg-blue-600 text-white shadow-2' : 'text-500 hover:bg-gray-100 hover:text-700'"
-             [pTooltip]="item.label" 
-             tooltipPosition="right"
-             (click)="navigate(item.route)">
-             <i [class]="item.icon" class="text-xl"></i>
-        </div>
+        <ng-container *ngFor="let item of topMenu">
+          <div *ngIf="canSeeMenuItem(item)"
+               class="p-ripple flex align-items-center justify-content-center w-3rem h-3rem mx-auto border-round-xl cursor-pointer transition-all transition-duration-200"
+               [ngClass]="isActive(item.route) ? 'bg-blue-600 text-white shadow-2' : 'text-500 hover:bg-gray-100 hover:text-700'"
+               [pTooltip]="item.label" 
+               tooltipPosition="right"
+               (click)="navigate(item.route)">
+               <i [class]="item.icon" class="text-xl"></i>
+          </div>
+        </ng-container>
     </div>
 
     <div class="flex-grow-1"></div>

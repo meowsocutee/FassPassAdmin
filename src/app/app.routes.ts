@@ -10,10 +10,12 @@ import { CardComponent } from './card/card.component';
 import { VideoComponent } from './video/video.component';
 import { StarComponent } from './inbox/star/star.component';
 import { FloorPlanViewerComponent } from './floor-plan-viewer.componentfloor-plan-viewer/floor-plan-viewer/floor-plan-viewer.component';
+import { PermissionsComponent } from './permissions/permissions.component';
 
 import { LoginComponent } from './login/login.component';
 import { ForgotPasswordComponent } from './forgot-password/forgot-password.component';
 import { AuthGuard } from './guards/auth.guard';
+import { roleGuard } from './guards/role.guard';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -44,6 +46,12 @@ export const routes: Routes = [
   { path: 'customer', component: CustomerComponent, canActivate: [AuthGuard] },
   { path: 'reserve', component: CardComponent, canActivate: [AuthGuard] },
   { path: 'video', component: VideoComponent, canActivate: [AuthGuard] },
-  { path: 'fp', component: FloorPlanViewerComponent, canActivate: [AuthGuard] }
+  { path: 'fp', component: FloorPlanViewerComponent, canActivate: [AuthGuard] },
+  {
+    path: 'permissions',
+    component: PermissionsComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { roles: ['admin', 'super_admin'] }
+  }
 ];
 

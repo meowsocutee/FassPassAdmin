@@ -1,0 +1,104 @@
+<p-toast></p-toast>
+
+<div class="permissions-page">
+
+  <!-- Page Header -->
+  <div class="flex align-items-center justify-content-between mb-4">
+    <div class="flex align-items-center gap-3">
+      <div class="w-2rem h-2rem border-round bg-blue-50 flex align-items-center justify-content-center">
+        <i class="pi pi-shield text-blue-700 text-base"></i>
+      </div>
+      <h1 class="text-xl font-bold text-900 m-0">User Permissions</h1>
+    </div>
+  </div>
+
+  <!-- Skeleton -->
+  <div *ngIf="loading" class="surface-card border-round-xl shadow-3 p-4">
+    <p-skeleton height="2.5rem" styleClass="mb-3" *ngFor="let i of [1,2,3,4,5,6,7,8]"></p-skeleton>
+  </div>
+
+  <!-- Table Card -->
+  <div *ngIf="!loading" class="surface-card border-round-xl shadow-3 overflow-hidden">
+
+    <p-table
+      id="role-matrix-table"
+      [value]="matrixData"
+      [scrollable]="true"
+      scrollHeight="calc(100vh - 195px)"
+      styleClass="permission-table"
+    >
+      <!-- ─── Header ─────────────────────────────────────── -->
+      <ng-template pTemplate="header">
+        <tr>
+          <!-- First column — "Permission" label with highlight -->
+          <th class="feature-col frozen-col" pFrozenColumn>
+            <span class="permission-label">Permission</span>
+          </th>
+
+          <!-- Role columns -->
+          <th *ngFor="let col of roleCols" class="role-col text-center">
+            <div class="flex flex-column align-items-center gap-1">
+              <span class="role-name">{{ col.label }}</span>
+              <span class="user-count">{{ col.userCount }} USERS</span>
+            </div>
+          </th>
+        </tr>
+      </ng-template>
+
+      <!-- ─── Body ───────────────────────────────────────── -->
+      <ng-template pTemplate="body" let-row>
+
+        <!-- Category Row -->
+        <tr *ngIf="isCategory(row)" class="category-row">
+          <td [attr.colspan]="roleCols.length + 1" class="category-cell">
+            <i class="pi pi-folder text-xs mr-2 opacity-60"></i>
+            {{ row.label }}
+          </td>
+        </tr>
+
+        <!-- Item Row -->
+        <tr *ngIf="!isCategory(row)" class="item-row">
+          <td class="feature-col frozen-col" pFrozenColumn>
+            <span class="feature-label">{{ row.feature }}</span>
+          </td>
+
+          <td *ngFor="let col of roleCols" class="perm-cell text-center">
+            <!-- NA: disabled empty checkbox -->
+            <p-checkbox
+              *ngIf="!isNA(row, col.key)"
+              [ngModel]="getPermValue(row, col.key)"
+              [binary]="true"
+              (onChange)="setPermValue(row, col.key, $event.checked)"
+              styleClass="perm-checkbox">
+            </p-checkbox>
+            <!-- Not applicable -->
+            <span *ngIf="isNA(row, col.key)" class="na-indicator">—</span>
+          </td>
+        </tr>
+
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- ─── Footer Actions (ยึดแบบ screenshot) ───────────────────── -->
+  <div *ngIf="!loading" class="flex align-items-center gap-2 mt-4">
+    <p-button
+      id="save-permissions-btn"
+      label="Save"
+      icon="pi pi-check"
+      size="small"
+      [loading]="saving"
+      (onClick)="save()">
+    </p-button>
+    <p-button
+      id="cancel-permissions-btn"
+      label="Cancel"
+      icon="pi pi-times"
+      size="small"
+      [outlined]="true"
+      severity="secondary"
+      (onClick)="cancel()">
+    </p-button>
+  </div>
+
+</div>

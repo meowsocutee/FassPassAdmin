@@ -148,10 +148,7 @@ export class AppComponent implements OnInit, OnDestroy {
       { label: 'อาคาร', icon: 'pi pi-building', route: '/buildings' },
       { label: 'จัดการการจอง', icon: 'pi pi-th-large', route: '/reserve' },
       { label: 'จัดการผู้ใช้งาน', icon: 'pi pi-user', route: '/customer' },
-      // { label: 'แจ้งเตือน', icon: 'pi pi-comment', route: '/chat' },
-      // { label: 'Video', icon: 'pi pi-video', route: '/video' },
-      //{ label: 'จัดการลานจอดรถ', icon: 'pi pi-car', route: '/parking' },
-      // { label: 'จัดการโซน', icon: 'pi pi-map', route: '/zones' }
+      { label: 'สิทธิ์การใช้งาน', icon: 'pi pi-shield', route: '/permissions', roles: ['admin', 'super_admin'] },
     ];
 
     this.profileMenuItems = [
@@ -207,5 +204,11 @@ export class AppComponent implements OnInit, OnDestroy {
         });
       }
     });
+  }
+
+  // ✅ Returns true if menu item has no role restriction, or user has required role
+  canSeeMenuItem(item: any): boolean {
+    if (!item.roles || item.roles.length === 0) return true;
+    return this.authService.hasRole(item.roles);
   }
 }
