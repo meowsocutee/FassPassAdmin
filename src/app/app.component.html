@@ -38,16 +38,54 @@
         <span class="font-medium">{{ item.label }}</span>
       </div>
       <p-divider></p-divider>
-      <div class="flex align-items-center gap-3 px-2 py-1">
+      <div class="flex align-items-center gap-3 px-2 py-1 cursor-pointer hover:surface-100 transition-colors border-round" (click)="profileMenuMobile.toggle($event)">
         <p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png" shape="circle" size="large"></p-avatar>
         <div class="flex flex-column">
             <span class="font-bold text-sm">Amy Elsner</span>
             <span class="text-500 text-xs">Admin</span>
         </div>
       </div>
+      <p-menu #profileMenuMobile [model]="profileMenuItems" [popup]="true" appendTo="body"></p-menu>
     </div>
   </div>
 </ng-template>
+
+<p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>
+
+<p-dialog [(visible)]="myAccountVisible" [modal]="true" [style]="{width: '50vw', minWidth: '400px'}" header="My Account" [draggable]="false" [resizable]="false">
+    <div class="p-fluid">
+        <h3 class="mt-0 mb-4 text-700">Profile Information</h3>
+        <div class="formgrid grid">
+            <div class="field col-12 md:col-6">
+                <label for="firstName" class="font-medium">First Name</label>
+                <input pInputText id="firstName" type="text" value="Admin" readonly disabled class="w-full bg-gray-100 text-600 font-medium" />
+            </div>
+            <div class="field col-12 md:col-6">
+                <label for="lastName" class="font-medium">Last Name</label>
+                <input pInputText id="lastName" type="text" value="FastPass" readonly disabled class="w-full bg-gray-100 text-600 font-medium" />
+            </div>
+            <div class="field col-12 md:col-6">
+                <label for="email" class="font-medium">Email</label>
+                <input pInputText id="email" type="email" value="admin@fastpass.com" readonly disabled class="w-full bg-gray-100 text-600 font-medium" />
+            </div>
+            <div class="field col-12 md:col-6">
+                <label for="company" class="font-medium">Company</label>
+                <input pInputText id="company" type="text" value="FastPass Corp" readonly disabled class="w-full bg-gray-100 text-600 font-medium" />
+            </div>
+            <div class="field col-12 md:col-6">
+                <label for="role" class="font-medium">Role</label>
+                <input pInputText id="role" type="text" value="Super Administrator" readonly disabled class="w-full bg-gray-100 text-600 font-medium" />
+            </div>
+            <div class="field col-12 md:col-6">
+                <label for="status" class="font-medium">Status</label>
+                <div class="p-inputgroup">
+                    <input pInputText id="status" type="text" value="Enabled" readonly disabled class="w-full bg-gray-100 text-600 font-medium" />
+                    <span class="p-inputgroup-addon bg-gray-100 border-none"><i class="pi pi-chevron-down text-500"></i></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</p-dialog>
 
 <!-- Standalone Layout for Login/Forgot Password -->
 <div *ngIf="isStandaloneLayout" class="h-screen w-full m-0 p-0 overflow-hidden">
@@ -100,9 +138,11 @@
           shape="circle" 
           size="large"
           styleClass="cursor-pointer hover:shadow-2 transition-all"
-          pTooltip="Profile"
-          tooltipPosition="right">
+          pTooltip="Profile Menu"
+          tooltipPosition="right"
+          (click)="profileMenuDesktop.toggle($event)">
         </p-avatar>
+        <p-menu #profileMenuDesktop [model]="profileMenuItems" [popup]="true" appendTo="body"></p-menu>
     </div>
   </div>
 
@@ -136,7 +176,8 @@
                 {{ selectedSite === 'all' ? 'Global' : (selectedSite | uppercase) }}
             </span>
         </div>
-        <p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png" shape="circle"></p-avatar>
+        <p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png" shape="circle" class="cursor-pointer" (click)="profileMenuMobileTop.toggle($event)"></p-avatar>
+        <p-menu #profileMenuMobileTop [model]="profileMenuItems" [popup]="true" appendTo="body"></p-menu>
     </div>
 
     <div class="flex-1 overflow-y-auto bg-gray-50 p-4 md:p-6 gap-6">

@@ -1,4 +1,4 @@
-    <div class="flex flex-column gap-4 w-full p-3 md:p-4 surface-ground relative">
+    <div class="flex flex-column gap-4 w-full relative">
         <div *ngIf="loading"
             class="fixed top-0 left-0 w-full h-full flex align-items-center justify-content-center bg-white-alpha-70"
             style="z-index: 9999;">
@@ -65,11 +65,11 @@
             <p-tabView>
                 <p-tabPanel>
                     <ng-template pTemplate="header">
-                        <div class="flex align-items-center gap-2">
-                            <i class="pi pi-check-circle text-green-500"></i>
-                            <span class="font-bold hidden sm:inline">กิจกรรมปกติ (Normal)</span> <span
-                                class="font-bold sm:hidden">Normal</span>
-                            <p-badge [value]="normalActivities.length.toString()" severity="success"></p-badge>
+                        <div class="flex align-items-center gap-2 px-3 py-2 border-round transition-colors hover:surface-100 cursor-pointer text-green-600">
+                            <i class="pi pi-check-circle"></i>
+                            <span class="font-bold hidden sm:inline">กิจกรรมปกติ (Normal)</span>
+                            <span class="font-bold sm:hidden">Normal</span>
+                            <p-badge [value]="normalActivities.length.toString()" severity="success" styleClass="ml-1"></p-badge>
                         </div>
                     </ng-template>
 
@@ -131,11 +131,11 @@
 
                 <p-tabPanel>
                     <ng-template pTemplate="header">
-                        <div class="flex align-items-center gap-2">
-                            <i class="pi pi-exclamation-triangle text-red-500"></i>
-                            <span class="font-bold text-red-600 hidden sm:inline">สิ่งที่ต้องตรวจสอบ (Abnormal)</span>
-                            <span class="font-bold text-red-600 sm:hidden">Abnormal</span>
-                            <p-badge [value]="abnormalActivities.length.toString()" severity="danger"></p-badge>
+                        <div class="flex align-items-center gap-2 px-3 py-2 border-round transition-colors hover:surface-100 cursor-pointer text-red-600">
+                            <i class="pi pi-exclamation-triangle"></i>
+                            <span class="font-bold hidden sm:inline">สิ่งที่ต้องตรวจสอบ (Abnormal)</span>
+                            <span class="font-bold sm:hidden">Abnormal</span>
+                            <p-badge [value]="abnormalActivities.length.toString()" severity="danger" styleClass="ml-1"></p-badge>
                         </div>
                     </ng-template>
 

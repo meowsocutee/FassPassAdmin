@@ -27,8 +27,16 @@ export class AuthService {
     }
   }
 
-  logout(): void {
+  logout(): Observable<void> {
+    // Phase 1: Mock Data & Auth Guard
     localStorage.removeItem(this.TOKEN_KEY);
+    return of(undefined).pipe(delay(500)); // Simulate network latency
+
+    /* 
+    // Phase 2: Backend Integration (Session-based)
+    // Replace the above mock logic with the following HTTP call when the backend is ready:
+    // return this.http.post('/api/v1/auth/logout', {}, { withCredentials: true });
+    */
   }
 
   isAuthenticated(): boolean {

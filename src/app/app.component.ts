@@ -21,6 +21,12 @@ import { createClient } from '@supabase/supabase-js';
 // Services
 import { ModalService } from './service/modal.service';
 import { filter } from 'rxjs/operators';
+import { MenuModule } from 'primeng/menu';
+import { MenuItem, ConfirmationService, MessageService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { AuthService } from './service/auth.service';
+import { DialogModule } from 'primeng/dialog';
+import { InputTextModule } from 'primeng/inputtext';
 
 @Component({
   selector: 'app-root',
@@ -37,8 +43,14 @@ import { filter } from 'rxjs/operators';
     ButtonModule,
     DropdownModule,
     TooltipModule,
-    OverlayPanelModule // ✅ 2. Add to imports array
+    TooltipModule,
+    OverlayPanelModule, // ✅ 2. Add to imports array
+    MenuModule,
+    ConfirmDialogModule,
+    DialogModule,
+    InputTextModule
   ],
+  providers: [ConfirmationService, MessageService],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
@@ -63,12 +75,17 @@ export class AppComponent implements OnInit, OnDestroy {
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueGNqZHlwYXh4enR5d3BscWR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3NTA1NTQsImV4cCI6MjA3NzMyNjU1NH0.vf6ox-MLQsyzQgPCF9t6t_yPbcoMhJJNkJd1A-mS7WA'
   );
 
+  profileMenuItems: MenuItem[] = [];
+  myAccountVisible: boolean = false;
+
   constructor(
     public router: Router,
     private modalService: ModalService,
     private primeng: PrimeNG,
     private siteStateService: SiteStateService,  // 👈 เพิ่ม
-    private siteApi: SiteApiService 
+    private siteApi: SiteApiService,
+    private authService: AuthService,
+    private confirmationService: ConfirmationService
   ) {
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
@@ -137,6 +154,23 @@ export class AppComponent implements OnInit, OnDestroy {
       // { label: 'จัดการโซน', icon: 'pi pi-map', route: '/zones' }
     ];
 
+    this.profileMenuItems = [
+      {
+        label: 'My Account',
+        icon: 'pi pi-user',
+        command: () => {
+          this.myAccountVisible = true;
+        }
+      },
+      {
+        label: 'Logout',
+        icon: 'pi pi-sign-out',
+        command: () => {
+          this.confirmLogout();
+        }
+      }
+    ];
+
     this.modalService.initListener();
   }
 
@@ -160,5 +194,18 @@ export class AppComponent implements OnInit, OnDestroy {
   get currentSiteLabel(): string {
     const site = this.siteOptions.find(s => s.value === this.selectedSite);
     return site ? site.label : 'Select Site';
+  }
+
+  confirmLogout() {
+    this.confirmationService.confirm({
+      message: 'Are you sure you want to log out?',
+      header: 'Confirm Logout',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        this.authService.logout().subscribe(() => {
+          this.router.navigate(['/login']);
+        });
+      }
+    });
   }
 }
