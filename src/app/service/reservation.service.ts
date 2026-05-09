@@ -12,12 +12,17 @@ export class ReservationService {
 
   constructor(private http: HttpClient) { }
 
-  getUserReservations(token: string): Observable<any> {
+  getUserReservations(token: string, startDate?: string, endDate?: string): Observable<any> {
     const headers = new HttpHeaders({
       Authorization: `Bearer ${token}`,
       apikey: this.anonKey
     });
 
-    return this.http.get<any>(this.edgeUrl, { headers });
+    let url = this.edgeUrl;
+    let params = new HttpParams();
+    if (startDate) params = params.set('start_date', startDate);
+    if (endDate) params = params.set('end_date', endDate);
+
+    return this.http.get<any>(url, { headers, params });
   }
 }

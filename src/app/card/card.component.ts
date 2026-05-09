@@ -17,6 +17,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ReservationService } from '../service/reservation.service';
+import { DateRangePickerComponent } from '../components/date-range-picker/date-range-picker.component';
 
 @Component({
   selector: 'app-card',
@@ -35,7 +36,8 @@ import { ReservationService } from '../service/reservation.service';
     IconFieldModule,
     IconFieldModule,
     InputIconModule,
-    ProgressSpinnerModule
+    ProgressSpinnerModule,
+    DateRangePickerComponent
   ],
   templateUrl: './card.component.html',
   styleUrls: ['./card.component.css']
@@ -74,7 +76,7 @@ export class CardComponent implements OnInit, OnDestroy {
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueGNqZHlwYXh4enR5d3BscWR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3NTA1NTQsImV4cCI6MjA3NzMyNjU1NH0.vf6ox-MLQsyzQgPCF9t6t_yPbcoMhJJNkJd1A-mS7WA'
   );
 
-  selectedDate: Date | undefined;
+  selectedRange: Date[] | null = null;
   selectedReservations: any[] = [];
   loading = false;
   first: number = 0;
@@ -158,7 +160,20 @@ export class CardComponent implements OnInit, OnDestroy {
     }
 
     // No date filter needed as per user request
-    this.reservationService.getUserReservations(token).subscribe({
+    let startDate: string | undefined;
+    let endDate: string | undefined;
+
+    if (this.selectedRange && this.selectedRange[0]) {
+      const d = this.selectedRange[0];
+      startDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      
+      if (this.selectedRange[1]) {
+        const d2 = this.selectedRange[1];
+        endDate = `${d2.getFullYear()}-${String(d2.getMonth() + 1).padStart(2, '0')}-${String(d2.getDate()).padStart(2, '0')}`;
+      }
+    }
+
+    this.reservationService.getUserReservations(token, startDate, endDate).subscribe({
       next: (res: any) => {
         // Transform 'ยกเลิก' to 'หมดอายุ' as per requirement
         this.allReservations = res.reservations.map((r: any) => {
@@ -214,12 +229,15 @@ export class CardComponent implements OnInit, OnDestroy {
     this.applyFilters();
   }
 
-  onDateChange() {
+  onRangeChange(range: Date[] | null) {
+    this.selectedRange = range;
+    this.loadReservationData(); // Re-load from API when range changes
     this.applyFilters();
   }
 
   clearDate() {
-    this.selectedDate = undefined;
+    this.selectedRange = null;
+    this.loadReservationData();
     this.applyFilters();
   }
 
@@ -248,12 +266,21 @@ export class CardComponent implements OnInit, OnDestroy {
       }
     }
 
-    // 2. Filter by Date (selectedDate)
-    if (this.selectedDate) {
-      const filterDateStr = this.formatDateToThai(this.selectedDate);
-      // Filter by 'date' (Booking Date) or 'reserved_at_date' based on requirement.
-      // Usually "Date Filter" on a list refers to the main date column.
-      filtered = filtered.filter(r => r.date === filterDateStr);
+    // 2. Filter by Date Range
+    if (this.selectedRange && this.selectedRange[0] && this.selectedRange[1]) {
+      const start = this.selectedRange[0];
+      const end = this.selectedRange[1];
+      
+      filtered = filtered.filter(r => {
+        const rDate = this.parseThaiDate(r.date);
+        return rDate >= start && rDate <= end;
+      });
+    } else if (this.selectedRange && this.selectedRange[0]) {
+      const start = this.selectedRange[0];
+      filtered = filtered.filter(r => {
+        const rDate = this.parseThaiDate(r.date);
+        return rDate.getTime() === start.getTime();
+      });
     }
 
     // 3. Filter by Search Term (ชื่อผู้ใช้)
@@ -277,6 +304,18 @@ export class CardComponent implements OnInit, OnDestroy {
     const m = (date.getMonth() + 1).toString().padStart(2, '0');
     const y = (date.getFullYear() + 543).toString();
     return `${d}/${m}/${y}`;
+  }
+
+  private parseThaiDate(dateStr: string): Date {
+    const parts = dateStr.split('/');
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      let year = parseInt(parts[2], 10);
+      if (year > 2400) year -= 543; // Convert from BE to AD
+      return new Date(year, month, day);
+    }
+    return new Date(0);
   }
 
   getMetricCardClass(metric: any): string {

@@ -27,10 +27,13 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { createClient } from '@supabase/supabase-js';
 import { SiteStateService } from '../service/site/site-state.service';
 import { UserUtils } from '../utils/user-utils';
+import { DateRangePickerComponent } from '../components/date-range-picker/date-range-picker.component';
 
 // ✅ เพิ่ม Import สำหรับ RxJS Timer
 import { timer, Subject, Subscription } from 'rxjs';
 import { switchMap, takeUntil, tap } from 'rxjs/operators';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 @Component({
   selector: 'app-dashboard',
@@ -40,7 +43,8 @@ import { switchMap, takeUntil, tap } from 'rxjs/operators';
     ButtonModule, InputTextModule, DropdownModule,
     CalendarModule, TableModule, TagModule, CheckboxModule, CardModule,
     IconFieldModule, InputIconModule, AvatarModule, TabViewModule, BadgeModule,
-    SidebarModule, TooltipModule, TimelineModule, ProgressSpinnerModule
+    SidebarModule, TooltipModule, TimelineModule, ProgressSpinnerModule,
+    DateRangePickerComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css'],
@@ -56,7 +60,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   allActivities: ActivityLog[] = [];
 
   selectedLogs: any[] = [];
-  selectedDate: Date | undefined;
+  selectedRange: Date[] | null = null;
   historyVisible: boolean = false;
   selectedUserHistory: ActivityLog[] = [];
   currentUser: string = '';
@@ -117,15 +121,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
           }
         }),
         switchMap(() => {
-          let dateStr: string | null = null;
-          if (this.selectedDate) {
-            const year = this.selectedDate.getFullYear();
-            const month = String(this.selectedDate.getMonth() + 1).padStart(2, '0');
-            const day = String(this.selectedDate.getDate()).padStart(2, '0');
-            dateStr = `${year}-${month}-${day}`;
+          let startDate: string | null = null;
+          let endDate: string | null = null;
+
+          if (this.selectedRange && this.selectedRange[0]) {
+            const d = this.selectedRange[0];
+            startDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            
+            if (this.selectedRange[1]) {
+              const d2 = this.selectedRange[1];
+              endDate = `${d2.getFullYear()}-${String(d2.getMonth() + 1).padStart(2, '0')}-${String(d2.getDate()).padStart(2, '0')}`;
+            }
           }
           // คืนค่า Observable ของ Request (ยังไม่ subscribe ตรงนี้)
-          return this.dashboardService.getAllActivities(dateStr, siteId, this.token!);
+          return this.dashboardService.getAllActivities(startDate, endDate, siteId, this.token!);
         })
       )
       .subscribe({
@@ -343,11 +352,29 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   get normalActivities() {
-    return this.allActivities.filter(a => a.category === 'normal' && this.matchesSearch(a));
+    return this.allActivities.filter(a => a.category === 'normal' && this.matchesSearch(a) && this.matchesDate(a));
   }
 
   get abnormalActivities() {
-    return this.allActivities.filter(a => a.category === 'abnormal' && this.matchesSearch(a));
+    return this.allActivities.filter(a => a.category === 'abnormal' && this.matchesSearch(a) && this.matchesDate(a));
+  }
+
+  private matchesDate(a: ActivityLog): boolean {
+    if (!this.selectedRange || !this.selectedRange[0]) return true;
+    
+    const logDate = new Date(a.time);
+    const start = new Date(this.selectedRange[0]);
+    start.setHours(0, 0, 0, 0);
+    
+    if (this.selectedRange[1]) {
+      const end = new Date(this.selectedRange[1]);
+      end.setHours(23, 59, 59, 999);
+      return logDate >= start && logDate <= end;
+    } else {
+      const endOfDay = new Date(start);
+      endOfDay.setHours(23, 59, 59, 999);
+      return logDate >= start && logDate <= endOfDay;
+    }
   }
 
   private matchesSearch(a: ActivityLog): boolean {
@@ -437,8 +464,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return map[type] || type;
   }
 
-  // ✅ แก้ไข onDateChange ให้มาเรียก startAutoRefresh
-  onDateChange() {
+  // ✅ แก้ไข onRangeChange ให้มาเรียก startAutoRefresh
+  onRangeChange(range: Date[] | null) {
+    this.selectedRange = range;
     const siteId = this.siteStateService.getCurrentSite();
     if (this.token) {
       this.allActivities = []; // สั่งเคลียร์เพื่อให้ Loading หมุน
@@ -471,6 +499,37 @@ export class DashboardComponent implements OnInit, OnDestroy {
       'background-color': UserUtils.getAvatarColor(name),
       'color': '#ffffff'
     };
+  }
+
+  exportToExcel() {
+    const filteredActivities = this.allActivities.filter(a => this.matchesSearch(a) && this.matchesDate(a));
+    
+    const dataToExport = filteredActivities.map(a => ({
+      'Date': new Date(a.time).toLocaleDateString('en-GB'),
+      'Time': new Date(a.time).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+      'Type': a.logType?.toUpperCase() || 'EVENT',
+      'Category': a.category?.toUpperCase() || 'NORMAL',
+      'Action': this.formatAction(a.action),
+      'User': a.user,
+      'Detail': a.meta?.entity?.plate || a.detail || a.entityId || '-',
+      'Status': a.status?.toUpperCase() || 'SUCCESS'
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Activities');
+    
+    // Auto-size columns
+    const max_width = dataToExport.reduce((w, r: any) => Math.max(w, r.Action.length), 10);
+    worksheet['!cols'] = [ { wch: 12 }, { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: max_width + 5 }, { wch: 20 }, { wch: 25 }, { wch: 10 } ];
+
+    const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    this.saveAsExcelFile(excelBuffer, 'dashboard_activities');
+  }
+
+  private saveAsExcelFile(buffer: any, fileName: string): void {
+    const data: Blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' });
+    saveAs(data, fileName + '_export_' + new Date().getTime() + '.xlsx');
   }
 
   ngOnDestroy() {

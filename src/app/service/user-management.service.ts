@@ -34,11 +34,20 @@ export class UserManagementService {
 
     constructor(private http: HttpClient) { }
 
-    getProfiles(token: string): Observable<UserManagementResponse> {
+    getProfiles(token: string, startDate?: string, endDate?: string): Observable<UserManagementResponse> {
         const headers = new HttpHeaders({
             Authorization: `Bearer ${token}`,
             apikey: this.anonKey
         });
-        return this.http.get<UserManagementResponse>(this.apiUrl, { headers });
+
+        let url = this.apiUrl;
+        if (startDate || endDate) {
+            const params: string[] = [];
+            if (startDate) params.push(`start_date=${startDate}`);
+            if (endDate) params.push(`end_date=${endDate}`);
+            url += `?${params.join('&')}`;
+        }
+
+        return this.http.get<UserManagementResponse>(url, { headers });
     }
 }

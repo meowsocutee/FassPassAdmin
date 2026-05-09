@@ -27,6 +27,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { UserManagementService, UserManagementResponse } from '../service/user-management.service';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { UserUtils } from '../utils/user-utils';
+import { DateRangePickerComponent } from '../components/date-range-picker/date-range-picker.component';
 
 interface User {
   id: string;
@@ -70,7 +71,8 @@ interface User {
     ConfirmDialogModule,
     ToastModule,
     CheckboxModule,
-    InputNumberModule
+    InputNumberModule,
+    DateRangePickerComponent
   ],
   templateUrl: './customer.component.html',
   styles: [`

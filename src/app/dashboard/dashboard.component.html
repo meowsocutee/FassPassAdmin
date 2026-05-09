@@ -39,17 +39,9 @@
                 </div>
 
                 <div class="flex flex-column md:flex-row align-items-center gap-4 w-full md:w-auto">
-                    <p-calendar [(ngModel)]="selectedDate" (onSelect)="onDateChange()" placeholder="วันที่"
-                        [showIcon]="true" styleClass="w-full md:w-10rem p-inputtext-sm"></p-calendar>
-                    <!-- ✅ ⭐ ADD THIS CLEAR BUTTON HERE -->
-                    <p-button 
-                        *ngIf="selectedDate"
-                        icon="pi pi-times"
-                        (click)="selectedDate = undefined; onDateChange()"
-                        severity="secondary"
-                        size="small"
-                        [text]="true">
-                    </p-button>
+                    <app-date-range-picker [rangeDates]="selectedRange" (rangeChange)="onRangeChange($event)" 
+                        placeholder="เลือกช่วงวันที่" styleClass="w-full md:w-20rem p-inputtext-sm">
+                    </app-date-range-picker>
 
                     <span class="p-input-icon-left w-full md:w-auto">
                         <i class="pi pi-search"></i>
@@ -58,7 +50,7 @@
                     </span>
 
                     <p-button label="Export" icon="pi pi-download" size="small" [outlined]="true"
-                        styleClass="w-full md:w-auto"></p-button>
+                        (click)="exportToExcel()" styleClass="w-full md:w-auto"></p-button>
                 </div>
             </div>
 
