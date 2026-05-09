@@ -20,3 +20,46 @@ body, html, * {
   font-family: 'Inter', Arial, sans-serif;
 }
 
+
+/* Force paginator dropdown to drop up */
+.p-paginator-bottom .p-dropdown-panel {
+  top: auto !important;
+  bottom: 100% !important;
+  transform-origin: center bottom !important;
+  margin-bottom: 2px;
+}
+
+/* Round the bottom corners of the paginator to match the container's border-round-xl */
+.p-paginator-bottom {
+  border-bottom-left-radius: 1rem;
+  border-bottom-right-radius: 1rem;
+}
+
+/* Fix p-input-icon-left: ensure the icon is embedded inside the input */
+.p-input-icon-left {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.p-input-icon-left > i,
+.p-input-icon-left > .pi {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.p-input-icon-left > input {
+  padding-left: 2.5rem !important;
+}
+
+/* Standardize toolbar element heights: match search input to p-calendar (datepicker) */
+.p-input-icon-left > input.p-inputtext-sm {
+  height: 2.15rem;
+  padding-top: 0;
+  padding-bottom: 0;
+}

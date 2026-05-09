@@ -77,6 +77,9 @@ export class CardComponent implements OnInit, OnDestroy {
   selectedDate: Date | undefined;
   selectedReservations: any[] = [];
   loading = false;
+  first: number = 0;
+  rowsPerPageOptions: number[] = [10, 20, 50];
+  searchTerm: string = '';
 
   /*// Metrics Data
   metrics = [
@@ -253,6 +256,19 @@ export class CardComponent implements OnInit, OnDestroy {
       filtered = filtered.filter(r => r.date === filterDateStr);
     }
 
+    // 3. Filter by Search Term (ชื่อผู้ใช้)
+    if (this.searchTerm) {
+      const term = this.searchTerm.toLowerCase().trim();
+      filtered = filtered.filter(r => {
+        const searchable = [
+          r.user, r.user_name, r.name, r.display_name,
+          r.first_name, r.last_name, r.fullName
+        ].filter(Boolean).join(' ').toLowerCase();
+        return searchable.includes(term);
+      });
+    }
+
+    this.first = 0; // Reset pagination to Page 1
     this.reservations = filtered;
   }
 

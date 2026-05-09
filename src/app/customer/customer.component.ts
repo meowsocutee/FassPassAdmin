@@ -26,6 +26,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 
 import { UserManagementService, UserManagementResponse } from '../service/user-management.service';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { UserUtils } from '../utils/user-utils';
 
 interface User {
   id: string;
@@ -100,9 +101,9 @@ interface User {
 export class CustomerComponent implements OnInit {
 
   // State
-  selectedCategory: string = 'All';
   selectedUsers: User[] = [];
-  selectedDate: Date | undefined;
+  searchTerm: string = '';
+  first: number = 0;
 
   // Supabase Client
   supabase: SupabaseClient = createClient(
@@ -113,7 +114,6 @@ export class CustomerComponent implements OnInit {
   // Metrics
   metrics: { title: string, value: string, subtext: string, icon: string }[] = [];
 
-  // Options
   roleOptions = [
     { label: 'Role ทั้งหมด', value: null },
     { label: 'Super Admin', value: 'Super Admin' },
@@ -127,25 +127,13 @@ export class CustomerComponent implements OnInit {
     { label: 'Visitor', value: 'Visitor' }
   ];
 
-  authOptions = [
-    { label: 'ช่องทางทั้งหมด', value: null },
-    { label: 'App / Line OA', value: 'Line OA' },
-    { label: 'Kiosk (Walk-in)', value: 'Kiosk' },
-    { label: 'Face Scan', value: 'Face Scan' },
-    { label: 'แลกบัตร (ID Card)', value: 'ID Exchange' }
-  ];
-
-  statusOptions = [
-    { label: 'สถานะ', value: null },
-    { label: 'Active', value: 'Active' },
-    { label: 'Checked In', value: 'Checked In' },
-    { label: 'Checked Out', value: 'Checked Out' },
-    { label: 'Blacklist', value: 'Blacklist' }
-  ];
 
   // Data
   allUsers: User[] = [];
+  filteredUsers: User[] = [];
   loading: boolean = false;
+  rowsPerPageOptions: number[] = [10, 20, 50];
+  imageErrors: Set<string> = new Set();
 
   constructor(
     private userManagementService: UserManagementService,
@@ -221,17 +209,18 @@ export class CustomerComponent implements OnInit {
               lastName: lName,
               phone: p.phone || '',
               email: p.email || '',
-              company: '', 
-              category: '' as any, 
+              company: p.company || '', 
+              category: this.mapRoleToCategory(p.role || ''), 
               role: p.role || '',
               authMethod: '', 
               status: blacklistedIds.has(p.id) ? 'Blacklist' : 'Active', // Set status based on blacklist table
               lastActive: '', 
-              registerDate: p.joined_date || p.created_at || '',
+              registerDate: this.parseDate(p.joined_date || p.created_at) || '',
               expiryDate: null,
               avatarUrl: p.avatar
             };
           });
+          this.updateFilteredUsers();
         }
         this.loading = false; // Stop loading
       },
@@ -243,19 +232,78 @@ export class CustomerComponent implements OnInit {
   }
 
   // Filter Logic
-  get filteredUsers() {
-    if (this.selectedCategory === 'All') return this.allUsers;
-    return this.allUsers.filter(user => user.category === this.selectedCategory);
+  updateFilteredUsers() {
+    let users = this.allUsers;
+
+    // Filter by search term
+    if (this.searchTerm) {
+      const term = this.searchTerm.toLowerCase().trim();
+      users = users.filter(user => 
+        (user.firstName + ' ' + user.lastName).toLowerCase().includes(term) ||
+        user.email.toLowerCase().includes(term) ||
+        user.id.toLowerCase().includes(term)
+      );
+    }
+
+    this.filteredUsers = [...users];
   }
 
-  setCategory(category: string) {
-    this.selectedCategory = category;
+  onSearch() {
+    this.first = 0;
+    this.updateFilteredUsers();
   }
 
-  getCount(category: string): number {
-    if (category === 'All') return this.allUsers.length;
-    return this.allUsers.filter(u => u.category === category).length;
+  private mapRoleToCategory(role: string): 'Internal' | 'External' | 'Hybrid' | '' {
+    switch (role) {
+      case 'Super Admin':
+      case 'Admin':
+      case 'Employee':
+      case 'Security':
+        return 'Internal';
+      case 'Hybrid Tech':
+      case 'Consultant':
+        return 'Hybrid';
+      case 'Guest':
+      case 'Visitor':
+      case 'User':
+      case 'Technician':
+        return 'External';
+      default:
+        return 'External';
+    }
   }
+
+  private parseDate(dateStr: any): any {
+    if (!dateStr) return null;
+    
+    // If it's already a Date or ISO string that JS can parse
+    const date = new Date(dateStr);
+    if (!isNaN(date.getTime()) && !dateStr.toString().includes('/')) {
+      return date;
+    }
+
+    // Handle DD/MM/YYYY format (potentially Buddhist Era)
+    if (typeof dateStr === 'string' && dateStr.includes('/')) {
+      const parts = dateStr.split('/');
+      if (parts.length === 3) {
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        let year = parseInt(parts[2], 10);
+
+        // If year is Buddhist Era (> 2400)
+        if (year > 2400) {
+          year -= 543;
+        }
+
+        const newDate = new Date(year, month, day);
+        return isNaN(newDate.getTime()) ? dateStr : newDate;
+      }
+    }
+
+    return dateStr;
+  }
+
+
 
   // Helper: Role Color
   getRoleSeverity(role: string): any {
@@ -297,6 +345,24 @@ export class CustomerComponent implements OnInit {
       case 'Pending': return 'text-orange-500 font-bold';
       case 'Blacklist': return 'text-red-600 font-bold line-through';
       default: return 'text-gray-700';
+    }
+  }
+
+  getInitials(user: any): string {
+    return UserUtils.getInitials(`${user.firstName} ${user.lastName}`);
+  }
+
+  getAvatarStyle(user: any): any {
+    if (user.avatarUrl && !this.imageErrors.has(user.avatarUrl)) return {};
+    return {
+      'background-color': UserUtils.getAvatarColor(`${user.firstName} ${user.lastName}`),
+      'color': '#ffffff'
+    };
+  }
+
+  handleImageError(avatarUrl: string) {
+    if (avatarUrl) {
+      this.imageErrors.add(avatarUrl);
     }
   }
 

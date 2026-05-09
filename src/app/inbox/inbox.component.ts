@@ -59,9 +59,14 @@ export class InboxComponent implements OnInit {
   originalBuilding: any = null;
   metrics: any[] = [];
   buildings: any[] = [];
+  allBuildings: any[] = [];
+  searchTerm: string = '';
 
   selectedBuildings: any[] = [];
   loading: boolean = false;
+  first: number = 0;
+  rowsPerPageOptions: number[] = [10, 20, 50];
+
       
   sidebarEditVisible: boolean = false;       // ✅ ADD
   sidebarHistoryVisible: boolean = false;
@@ -124,7 +129,7 @@ export class InboxComponent implements OnInit {
 
         const summary = res.parking_summary ?? [];
 
-        this.buildings = summary.map((b: any) => ({
+        this.allBuildings = summary.map((b: any) => ({
           id: b.id,
           name: b.name,
           images: b.images ?? [],
@@ -140,6 +145,7 @@ export class InboxComponent implements OnInit {
           openTime: b.open_time,
           closeTime: b.close_time
         }));
+        this.applySearch();
         this.loading = false; // Stop loading
       }, err => {
         console.error(err);
@@ -344,6 +350,19 @@ export class InboxComponent implements OnInit {
 
     return changes;
   }
+
+  applySearch() {
+    if (!this.searchTerm) {
+      this.buildings = [...this.allBuildings];
+    } else {
+      const term = this.searchTerm.toLowerCase().trim();
+      this.buildings = this.allBuildings.filter(b =>
+        (b.name || '').toLowerCase().includes(term)
+      );
+    }
+    this.first = 0;
+  }
+
   getSeverity(status: string) {
     switch (status) {
       case 'ใช้งานอยู่': return 'success';

@@ -2,7 +2,7 @@
 <p-confirmDialog></p-confirmDialog>
 
 <div
-    class="flex flex-column md:flex-row gap-4 w-full p-3 md:p-4 surface-ground min-h-screen align-items-start relative">
+    class="flex flex-column md:flex-row gap-4 w-full p-3 md:p-4 surface-ground min-h-screen align-items-start relative pb-8">
     <div *ngIf="loading"
         class="fixed top-0 left-0 w-full h-full flex align-items-center justify-content-center bg-white-alpha-70"
         style="z-index: 9999;">
@@ -10,7 +10,7 @@
     </div>
 
 
-    <div class="flex-1 flex flex-column gap-4 w-full overflow-hidden">
+    <div class="flex-1 flex flex-column gap-4 w-full">
 
         <div class="grid grid-nogutter">
             <div *ngFor="let metric of metrics" class="col-12 sm:col-6 lg:col-3 p-2">
@@ -30,41 +30,24 @@
             </div>
         </div>
 
-        <div
-            class="w-full bg-white p-3 border-round-xl shadow-1 border-1 border-100 flex flex-column md:flex-row flex-wrap align-items-center justify-content-between gap-3">
-            <div
-                class="flex flex-wrap align-items-center gap-2 w-full md:w-auto justify-content-center md:justify-content-start">
-                <p-calendar [(ngModel)]="selectedDate" placeholder="วันที่" [showIcon]="true"
-                    styleClass="w-full md:w-11rem p-inputtext-sm"></p-calendar>
-                <p-dropdown [options]="roleOptions" placeholder="บทบาท"
-                    styleClass="w-full md:w-12rem p-inputtext-sm surface-50 border-none"></p-dropdown>
-                <p-dropdown [options]="authOptions" placeholder="ยืนยันตัวตน"
-                    styleClass="w-full md:w-12rem p-inputtext-sm"></p-dropdown>
-                <p-dropdown [options]="statusOptions" placeholder="สถานะ"
-                    styleClass="w-full md:w-8rem p-inputtext-sm"></p-dropdown>
-                <p-button label="ค้นหา" icon="pi pi-search" size="small" styleClass="w-full md:w-auto"></p-button>
-            </div>
-        </div>
 
-        <div class="surface-card border-round-xl shadow-3 overflow-hidden">
+        <div class="surface-card border-round-xl shadow-3">
 
             <div
                 class="flex flex-column md:flex-row align-items-center justify-content-between p-3 md:p-4 border-bottom-1 border-100 bg-white gap-3">
-                <div
-                    class="flex align-items-center gap-3 w-full md:w-auto justify-content-between md:justify-content-start">
-                    <span class="font-bold text-lg border-bottom-2 pb-1"
-                        [class.text-blue-600]="selectedCategory === 'Internal'">
-                        {{ selectedCategory }} List
-                    </span>
+                <div class="flex align-items-center gap-3 w-full md:w-auto justify-content-between md:justify-content-start">
                     <p-button label="เพิ่ม" icon="pi pi-user-plus" [outlined]="true" size="small"></p-button>
                 </div>
                 <span class="p-input-icon-left w-full md:w-auto">
                     <i class="pi pi-search"></i>
-                    <input type="text" pInputText placeholder="ค้นหา..." class="p-inputtext-sm w-full md:w-20rem" />
+                    <input type="text" pInputText placeholder="ค้นหา..." class="p-inputtext-sm w-full md:w-20rem" 
+                        [(ngModel)]="searchTerm" (input)="onSearch()" />
                 </span>
             </div>
 
             <p-table [value]="filteredUsers" [(selection)]="selectedUsers" [paginator]="true" [rows]="10"
+                [(first)]="first" [rowsPerPageOptions]="rowsPerPageOptions"
+                [showCurrentPageReport]="true" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
                 responsiveLayout="scroll" styleClass="p-datatable-sm p-datatable-striped">
                 <ng-template pTemplate="header">
                     <tr class="text-sm text-600 bg-gray-50 whitespace-nowrap">
@@ -90,11 +73,14 @@
 
                         <td>
                             <div class="flex align-items-center gap-2">
-                                <p-avatar [image]="user.avatarUrl" [icon]="!user.avatarUrl ? 'pi pi-user' : undefined"
-                                    shape="circle" [styleClass]="user.category === 'Internal' ? 'bg-indigo-50 text-indigo-500' : 
-                                                  user.category === 'Hybrid' ? 'bg-purple-50 text-purple-500' : 
-                                                  user.category === 'External' ? 'bg-orange-50 text-orange-500' :
-                                                  'bg-gray-50 text-gray-500'">
+                                <p-avatar [image]="user.avatarUrl && !imageErrors.has(user.avatarUrl) ? user.avatarUrl : undefined" 
+                                    [label]="imageErrors.has(user.avatarUrl) || !user.avatarUrl ? getInitials(user) : undefined"
+                                    [style]="getAvatarStyle(user)"
+                                    (onImageError)="handleImageError(user.avatarUrl)"
+                                    shape="circle" [styleClass]="user.avatarUrl && !imageErrors.has(user.avatarUrl) ? (user.category === 'Internal' ? 'bg-indigo-50 text-indigo-500' : 
+                                                   user.category === 'Hybrid' ? 'bg-purple-50 text-purple-500' : 
+                                                   user.category === 'External' ? 'bg-orange-50 text-orange-500' :
+                                                   'bg-gray-50 text-gray-500') : ''">
                                 </p-avatar>
                                 <div class="flex flex-column">
                                     <span class="font-semibold text-800">{{user.firstName}} {{user.lastName}}</span>
@@ -312,3 +298,6 @@
         </div>
     </ng-template>
 </p-dialog>
+
+<!-- Spacer to ensure enough scrolling space at the bottom for pagination dropdowns -->
+<div style="height: 12rem; width: 100%;"></div>

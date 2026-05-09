@@ -8,7 +8,11 @@
     </div>
 
     <div *ngFor="let user of users" class="chat-user" (click)="selectUser(user)" [class.active]="selectedUser?.id === user.id">
-        <p-avatar [image]="user.avatar" shape="circle" size="large"></p-avatar>
+        <p-avatar [image]="user.avatar && !imageErrors.has(user.avatar) ? user.avatar : undefined" 
+            [label]="!user.avatar || imageErrors.has(user.avatar) ? getInitials(user.name) : undefined"
+            [style]="getAvatarStyle(user.name, user.avatar)"
+            (onImageError)="handleImageError(user.avatar)"
+            shape="circle" size="large"></p-avatar>
       <div class="user-info">
         <div class="user-name">{{ user.name }}</div>
         <div class="last-message">{{ user.lastMessage }}</div>
@@ -22,7 +26,11 @@
   <div class="chat-main">
     <div class="messages">
       <div *ngFor="let msg of filteredMessages" class="message" [ngClass]="{'own': msg.own}">
-        <p-avatar [image]="msg.avatar" shape="circle" size="normal" styleClass="mr-2"></p-avatar>
+        <p-avatar [image]="msg.avatar && !imageErrors.has(msg.avatar) ? msg.avatar : undefined" 
+            [label]="!msg.avatar || imageErrors.has(msg.avatar) ? getInitials(msg.sender || (msg.own ? 'Me' : selectedUser?.name || 'User')) : undefined"
+            [style]="getAvatarStyle(msg.sender || (msg.own ? 'Me' : selectedUser?.name || 'User'), msg.avatar)"
+            (onImageError)="handleImageError(msg.avatar)"
+            shape="circle" size="normal" styleClass="mr-2"></p-avatar>
         <div class="message-content">
           <div class="bubble">{{ msg.content }}</div>
           <small>{{ msg.time }}</small>
@@ -41,7 +49,11 @@
   <div class="chat-details" *ngIf="selectedUser">
     <h3>{{ selectedUser.name }}</h3>
     <p>
-      <p-avatar [image]="selectedUser.avatar" shape="circle" size="large" styleClass="mr-2"></p-avatar>
+      <p-avatar [image]="selectedUser.avatar && !imageErrors.has(selectedUser.avatar) ? selectedUser.avatar : undefined" 
+          [label]="!selectedUser.avatar || imageErrors.has(selectedUser.avatar) ? getInitials(selectedUser.name) : undefined"
+          [style]="getAvatarStyle(selectedUser.name, selectedUser.avatar)"
+          (onImageError)="handleImageError(selectedUser.avatar)"
+          shape="circle" size="large" styleClass="mr-2"></p-avatar>
       <span class="ml-2">{{ selectedUser.online ? 'Online' : 'Offline' }}</span>
     </p>
     <p><b>Last Message:</b> {{ selectedUser.lastMessage }}</p>

@@ -15,6 +15,8 @@ import { TagModule } from 'primeng/tag';
   styleUrls: ['./inboxlist.component.css']
 })
 export class InboxListComponent {
+  first: number = 0;
+  rowsPerPageOptions: number[] = [10, 20, 50];
 
  messages = [
     { subject: 'Meeting Reminder', sender: 'Alice', date: '2025-08-14', status: 'Unread' },

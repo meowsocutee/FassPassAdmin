@@ -1,4 +1,4 @@
-    <div class="flex flex-column gap-4 w-full relative">
+    <div class="flex flex-column gap-4 w-full relative pb-8">
         <div *ngIf="loading"
             class="fixed top-0 left-0 w-full h-full flex align-items-center justify-content-center bg-white-alpha-70"
             style="z-index: 9999;">
@@ -29,7 +29,7 @@
             </div>
         </div>
 
-        <div class="card bg-white border-round-xl shadow-3 overflow-hidden">
+        <div class="card bg-white border-round-xl shadow-3">
 
             <div
                 class="flex flex-column md:flex-row flex-wrap align-items-center justify-content-between p-3 border-bottom-1 border-100 gap-3">
@@ -38,7 +38,7 @@
                     <span>บันทึกกิจกรรม</span>
                 </div>
 
-                <div class="flex flex-column md:flex-row align-items-center gap-2 w-full md:w-auto">
+                <div class="flex flex-column md:flex-row align-items-center gap-4 w-full md:w-auto">
                     <p-calendar [(ngModel)]="selectedDate" (onSelect)="onDateChange()" placeholder="วันที่"
                         [showIcon]="true" styleClass="w-full md:w-10rem p-inputtext-sm"></p-calendar>
                     <!-- ✅ ⭐ ADD THIS CLEAR BUTTON HERE -->
@@ -51,11 +51,11 @@
                         [text]="true">
                     </p-button>
 
-                    <p-iconField iconPosition="right" class="w-full md:w-auto">
-                        <p-inputIcon styleClass="pi pi-search"></p-inputIcon>
-                        <input type="text" pInputText placeholder="ค้นหากิจกรรม..."
+                    <span class="p-input-icon-left w-full md:w-auto">
+                        <i class="pi pi-search"></i>
+                        <input type="text" pInputText [(ngModel)]="searchTerm" (input)="onSearch()" placeholder="ค้นหากิจกรรม..."
                             class="p-inputtext-sm w-full md:w-15rem" />
-                    </p-iconField>
+                    </span>
 
                     <p-button label="Export" icon="pi pi-download" size="small" [outlined]="true"
                         styleClass="w-full md:w-auto"></p-button>
@@ -73,8 +73,10 @@
                         </div>
                     </ng-template>
 
-                <p-table [value]="normalActivities" [paginator]="true" [rows]="8" responsiveLayout="scroll"
-                    styleClass="p-datatable-sm">
+                <p-table [value]="normalActivities" [paginator]="true" [rows]="10" 
+                    [(first)]="firstNormal" [rowsPerPageOptions]="rowsPerPageOptions"
+                    [showCurrentPageReport]="true" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+                    responsiveLayout="scroll" styleClass="p-datatable-sm">
                     <ng-template pTemplate="header">
                         <tr class="text-sm bg-gray-50 white-space-nowrap">
                             <th style="min-width: 100px">วันที่</th>
@@ -109,8 +111,9 @@
                             <td>
                                 <div class="flex align-items-center gap-2 cursor-pointer text-blue-600 hover:text-blue-800"
                                     (click)="viewUserHistory(log.user)" pTooltip="Click to view history">
-                                    <p-avatar icon="pi pi-user" shape="circle" size="normal"
-                                        styleClass="bg-blue-50 text-blue-500 flex-shrink-0"></p-avatar>
+                                    <p-avatar [label]="getInitials(log.user)" shape="circle" size="normal"
+                                        [style]="getAvatarStyle(log.user)"
+                                        styleClass="flex-shrink-0"></p-avatar>
                                     <span class="font-semibold underline">{{ log.user }}</span>
                                 </div>
                             </td>
@@ -139,8 +142,10 @@
                         </div>
                     </ng-template>
 
-                    <p-table [value]="abnormalActivities" [paginator]="true" [rows]="8" responsiveLayout="scroll"
-                        styleClass="p-datatable-sm">
+                    <p-table [value]="abnormalActivities" [paginator]="true" [rows]="10" 
+                        [(first)]="firstAbnormal" [rowsPerPageOptions]="rowsPerPageOptions"
+                        [showCurrentPageReport]="true" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+                        responsiveLayout="scroll" styleClass="p-datatable-sm">
                         <ng-template pTemplate="header">
                             <tr class="text-sm bg-red-50 white-space-nowrap">
                                 <th style="min-width: 100px">วันที่</th>
@@ -199,8 +204,9 @@
     <p-sidebar [(visible)]="historyVisible" position="right" styleClass="w-full md:w-30rem">
         <div class="flex flex-column h-full">
             <div class="flex align-items-center gap-3 mb-4 pb-3 border-bottom-1 border-gray-200 bg-gray-50 -m-3 p-4">
-                <p-avatar icon="pi pi-user" size="large" shape="circle"
-                    styleClass="bg-blue-600 text-white shadow-3 flex-shrink-0"></p-avatar>
+                <p-avatar [label]="getInitials(currentUser)" size="large" shape="circle"
+                    [style]="getAvatarStyle(currentUser)"
+                    styleClass="shadow-3 flex-shrink-0"></p-avatar>
                 <div class="overflow-hidden">
                     <div class="text-xl font-bold text-800 white-space-nowrap text-overflow-ellipsis">{{ currentUser }}
                     </div>

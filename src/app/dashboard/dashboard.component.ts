@@ -26,6 +26,7 @@ import { TimelineModule } from 'primeng/timeline';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { createClient } from '@supabase/supabase-js';
 import { SiteStateService } from '../service/site/site-state.service';
+import { UserUtils } from '../utils/user-utils';
 
 // ✅ เพิ่ม Import สำหรับ RxJS Timer
 import { timer, Subject, Subscription } from 'rxjs';
@@ -60,6 +61,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
   selectedUserHistory: ActivityLog[] = [];
   currentUser: string = '';
   loading: boolean = false;
+  firstNormal: number = 0;
+  firstAbnormal: number = 0;
+  rowsPerPageOptions: number[] = [10, 20, 50];
+  searchTerm: string = '';
 
   // ✅ ตัวแปรสำหรับจัดการ Auto Refresh
   private refreshSub?: Subscription;
@@ -91,6 +96,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
       .subscribe(siteId => {
         if (this.token) {
           this.allActivities = []; // ล้างข้อมูลเก่าก่อน
+          this.firstNormal = 0;
+          this.firstAbnormal = 0;
           this.startAutoRefresh(siteId);
         }
       });
@@ -336,11 +343,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   get normalActivities() {
-    return this.allActivities.filter(a => a.category === 'normal');
+    return this.allActivities.filter(a => a.category === 'normal' && this.matchesSearch(a));
   }
 
   get abnormalActivities() {
-    return this.allActivities.filter(a => a.category === 'abnormal');
+    return this.allActivities.filter(a => a.category === 'abnormal' && this.matchesSearch(a));
+  }
+
+  private matchesSearch(a: ActivityLog): boolean {
+    if (!this.searchTerm) return true;
+    const term = this.searchTerm.toLowerCase();
+    return (a.action || '').toLowerCase().includes(term);
+  }
+
+  onSearch() {
+    this.firstNormal = 0;
+    this.firstAbnormal = 0;
   }
 
   viewUserHistory(userName: string) {
@@ -424,6 +442,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const siteId = this.siteStateService.getCurrentSite();
     if (this.token) {
       this.allActivities = []; // สั่งเคลียร์เพื่อให้ Loading หมุน
+      this.firstNormal = 0;
+      this.firstAbnormal = 0;
       this.startAutoRefresh(siteId);
     }
   }
@@ -440,6 +460,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   getActivitySeverity(category: string): "success" | "danger" | "info" | "warning" | "secondary" | "contrast" | undefined {
     return category === 'normal' ? 'success' : 'danger';
+  }
+
+  getInitials(name: string): string {
+    return UserUtils.getInitials(name);
+  }
+
+  getAvatarStyle(name: string): any {
+    return {
+      'background-color': UserUtils.getAvatarColor(name),
+      'color': '#ffffff'
+    };
   }
 
   ngOnDestroy() {

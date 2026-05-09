@@ -13,6 +13,7 @@ import { ButtonModule } from 'primeng/button';
 
 import { MenuItem } from 'primeng/api';
 import { VideoService, Video } from '../service/video.service';
+import { UserUtils } from '../utils/user-utils';
 
 @Component({
   selector: 'app-video',
@@ -59,5 +60,16 @@ export class VideoComponent {
       queryParams: { videoId: video.id },
       queryParamsHandling: 'merge'
     });
+  }
+
+  getInitials(name: string): string {
+    return UserUtils.getInitials(name);
+  }
+
+  getAvatarStyle(name: string): any {
+    return {
+      'background-color': UserUtils.getAvatarColor(name),
+      'color': '#ffffff'
+    };
   }
 }

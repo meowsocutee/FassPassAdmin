@@ -7,6 +7,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { ChatService, ChatMessage } from '../../service/chat.service';
 import { ModalService } from '../../service/modal.service';
+import { UserUtils } from '../../utils/user-utils';
 
 @Component({
   selector: 'app-chat-dialog',
@@ -20,6 +21,7 @@ export class ChatDialogComponent {
   name!: string;
   avatar!: string;
   newMessage: string = '';
+  imageErrors: Set<string> = new Set();
 
   constructor(
     public ref: DynamicDialogRef,
@@ -66,5 +68,23 @@ export class ChatDialogComponent {
   // ✅ Open user info modal from chat
   openUserInfo() {
     this.modalService.addModal('userinfo', this.userId);
+  }
+
+  getInitials(name: string): string {
+    return UserUtils.getInitials(name);
+  }
+
+  getAvatarStyle(name: string, avatar: string | undefined): any {
+    if (avatar && !this.imageErrors.has(avatar)) return {};
+    return {
+      'background-color': UserUtils.getAvatarColor(name),
+      'color': '#ffffff'
+    };
+  }
+
+  handleImageError(avatar: string | undefined) {
+    if (avatar) {
+      this.imageErrors.add(avatar);
+    }
   }
 }

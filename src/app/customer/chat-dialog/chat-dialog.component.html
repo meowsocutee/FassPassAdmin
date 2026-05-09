@@ -1,7 +1,11 @@
 <div class="chat-main">
   <!-- Header -->
   <div class="chat-header cursor-pointer" (click)="openUserInfo()">
-    <p-avatar [image]="avatar" shape="circle" size="large" styleClass="mr-2"></p-avatar>
+    <p-avatar [image]="avatar && !imageErrors.has(avatar) ? avatar : undefined" 
+        [label]="imageErrors.has(avatar) || !avatar ? getInitials(name) : undefined"
+        [style]="getAvatarStyle(name, avatar)"
+        (onImageError)="handleImageError(avatar)"
+        shape="circle" size="large" styleClass="mr-2"></p-avatar>
     <div>
       <h3 class="chat-title">{{ name }}</h3>
       <small class="chat-status">Online</small>
@@ -17,7 +21,11 @@
   <!-- Messages -->
   <div class="messages">
     <div *ngFor="let msg of messages" class="message" [ngClass]="{'own': msg.own}">
-      <p-avatar [image]="msg.own ? 'assets/me-avatar.png' : avatar" shape="circle" size="normal" styleClass="mr-2"></p-avatar>
+      <p-avatar [image]="msg.own ? 'assets/me-avatar.png' : (avatar && !imageErrors.has(avatar) ? avatar : undefined)" 
+          [label]="(!msg.own && (!avatar || imageErrors.has(avatar))) ? getInitials(name) : (msg.own ? 'M' : undefined)"
+          [style]="getAvatarStyle(msg.own ? 'Me' : name, msg.own ? 'assets/me-avatar.png' : avatar)"
+          (onImageError)="handleImageError(msg.own ? 'assets/me-avatar.png' : avatar)"
+          shape="circle" size="normal" styleClass="mr-2"></p-avatar>
       <div class="message-content">
         <div class="bubble">{{ msg.content }}</div>
         <small>{{ msg.time }}</small>

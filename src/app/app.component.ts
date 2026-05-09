@@ -27,6 +27,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { AuthService } from './service/auth.service';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { UserUtils } from './utils/user-utils';
 
 @Component({
   selector: 'app-root',
@@ -59,6 +60,14 @@ export class AppComponent implements OnInit, OnDestroy {
   activeRoute: string = '';
   sidebarVisible: boolean = false;
 
+  currentUserProfile = {
+    firstName: 'Fast',
+    lastName: 'Pass',
+    role: 'Administrator',
+    image: '', // Remove image to show fallback initials as in the picture
+    imageError: false
+  };
+
   siteOptions: any[] = [
     { label: 'All Sites (ภาพรวม)', value: 'all' },
     { label: 'KMITL', value: 'kmitl' },
@@ -68,7 +77,6 @@ export class AppComponent implements OnInit, OnDestroy {
   ];
 
   topMenu: any[] = [];
-  bottomMenu: any[] = [];
 
   supabase = createClient(
     'https://unxcjdypaxxztywplqdv.supabase.co',
@@ -138,10 +146,6 @@ export class AppComponent implements OnInit, OnDestroy {
       });
     }
 
-    this.bottomMenu = [
-      { label: 'Settings', icon: 'pi pi-cog', route: '/fp' },
-      { label: 'Help', icon: 'pi pi-question-circle', route: '/help' }
-    ];
 
     this.topMenu = [
       { label: 'หน้าหลัก', icon: 'pi pi-home', route: '/dashboard' },
@@ -210,5 +214,20 @@ export class AppComponent implements OnInit, OnDestroy {
   canSeeMenuItem(item: any): boolean {
     if (!item.roles || item.roles.length === 0) return true;
     return this.authService.hasRole(item.roles);
+  }
+
+  getInitials(name: string): string {
+    return UserUtils.getInitials(name);
+  }
+
+  getAvatarStyle(name: string): any {
+    return {
+      'background-color': UserUtils.getAvatarColor(name),
+      'color': '#ffffff'
+    };
+  }
+
+  handleImageError() {
+    this.currentUserProfile.imageError = true;
   }
 }

@@ -5,7 +5,10 @@
       <button pButton label="New Mail" icon="pi pi-envelope" class="p-button-sm p-button-info"></button>
     </div>
 
-    <p-table [value]="messages" [paginator]="true" [rows]="10" responsiveLayout="scroll">
+    <p-table [value]="messages" [paginator]="true" [rows]="10" 
+        [(first)]="first" [rowsPerPageOptions]="rowsPerPageOptions"
+        [showCurrentPageReport]="true" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+        responsiveLayout="scroll">
       <ng-template pTemplate="header">
         <tr>
           <th>Subject</th>

@@ -15,9 +15,13 @@
   background-color: #283593 !important;
 }
 
-/* Fix PrimeNG password input padding with icon */
+/* Fix PrimeNG password input to match email input size */
 ::ng-deep p-password .p-inputtext {
-  padding-left: 2.5rem !important;
+  padding-left: 0.75rem !important;
+}
+
+::ng-deep p-password .p-password-input {
+  padding: 0.75rem !important;
 }
 
 ::ng-deep .p-input-icon-left > i, 

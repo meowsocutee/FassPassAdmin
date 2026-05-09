@@ -10,6 +10,7 @@ import { BadgeModule } from 'primeng/badge';
 import { OverlayBadgeModule } from 'primeng/overlaybadge';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ChatService, ChatUser, ChatMessage } from '../service/chat.service';
+import { UserUtils } from '../utils/user-utils';
 
 @Component({
   selector: 'app-chat',
@@ -32,6 +33,25 @@ export class ChatComponent {
   users: ChatUser[] = [];
   newMessage: string = '';
   selectedUser: ChatUser | null = null;
+  imageErrors: Set<string> = new Set();
+
+  getInitials(name: string): string {
+    return UserUtils.getInitials(name);
+  }
+
+  getAvatarStyle(name: string, avatar: string | undefined): any {
+    if (avatar && !this.imageErrors.has(avatar)) return {};
+    return {
+      'background-color': UserUtils.getAvatarColor(name),
+      'color': '#ffffff'
+    };
+  }
+
+  handleImageError(avatar: string | undefined) {
+    if (avatar) {
+      this.imageErrors.add(avatar);
+    }
+  }
 
   constructor(
     private route: ActivatedRoute,
@@ -41,7 +61,7 @@ export class ChatComponent {
     this.users = this.chatService.getUsers();
 
     this.route.queryParams.subscribe(params => {
-      const userId = +params['userId'];
+      const userId = +params['id'];
       if (userId) {
         const user = this.users.find(u => u.id === userId);
         if (user) {

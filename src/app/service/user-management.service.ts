@@ -17,6 +17,7 @@ export interface UserProfile {
     role: string;
     created_at: string;
     joined_date: string;
+    company?: string;
 }
 
 export interface UserManagementResponse {

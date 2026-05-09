@@ -1,4 +1,4 @@
-<div class="flex flex-column gap-6 p-6 bg-gray-50 min-h-screen w-full relative">
+<div class="flex flex-column gap-6 p-6 bg-gray-50 min-h-screen w-full relative pb-8">
   <div *ngIf="loading"
     class="fixed top-0 left-0 w-full h-full flex align-items-center justify-content-center bg-white-alpha-70"
     style="z-index: 9999;">
@@ -20,7 +20,7 @@
 
 
 
-  <div class="bg-white border-round-xl border-1 border-gray-100 shadow-3 overflow-hidden flex flex-column">
+  <div class="bg-white border-round-xl border-1 border-gray-100 shadow-3 flex flex-column">
 
     <div
       class="flex flex-wrap align-items-center justify-content-between p-4 gap-4 border-bottom-1 border-gray-100 bg-white">
@@ -47,16 +47,19 @@
         </p-calendar>
 
         <!-- Search Input -->
-        <span class="p-input-icon-left">
-          <i class="pi pi-search text-gray-400"></i>
+        <span class="p-input-icon-left w-full md:w-auto">
+          <i class="pi pi-search"></i>
           <input type="text" pInputText placeholder="ค้นหาผู้ใช้งาน (User ID / ชื่อ)"
-            class="p-inputtext-sm w-15rem border-round-2xl border-gray-300" />
+            [(ngModel)]="searchTerm" (input)="applyFilters()"
+            class="p-inputtext-sm w-full md:w-15rem" />
         </span>
 
       </div>
     </div>
 
     <p-table [value]="reservations" [(selection)]="selectedReservations" [paginator]="true" [rows]="10"
+      [(first)]="first" [rowsPerPageOptions]="rowsPerPageOptions"
+      [showCurrentPageReport]="true" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
       responsiveLayout="scroll" styleClass="p-datatable-sm" [customSort]="true" (sortFunction)="customSort($event)"
       sortField="reserved_at_date" [sortOrder]="-1">
 
