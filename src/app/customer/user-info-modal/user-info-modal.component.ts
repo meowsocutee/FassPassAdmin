@@ -1,50 +1,72 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
-import { CardModule } from 'primeng/card';
+import { FormsModule } from '@angular/forms';
+import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
-import { Customer } from '../../service/user-info.service'; // <-- import Customer
-import { Router } from '@angular/router';
+import { ProfileFormComponent } from '../../components/profile-form/profile-form.component';
 
 @Component({
   selector: 'app-user-info-modal',
   standalone: true,
-  imports: [CommonModule, CardModule, ButtonModule],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    DialogModule, 
+    ButtonModule,
+    ProfileFormComponent
+  ],
   template: `
-    <p-card *ngIf="customer" [subheader]="customer.title + ' at ' + customer.company">
-      <!-- Avatar -->
-      <img 
-        [src]="customer.avatar" 
-        alt="{{ customer.name }}" 
-        class="w-full mb-3 rounded-lg shadow-md"
-        style="min-width: 120px; max-width: 200px; margin: 0 auto; display: block;"
-      />
+    <p-dialog [(visible)]="visible" [showHeader]="false" [modal]="true" 
+        [style]="{width: '750px', maxHeight: '90vh'}" [draggable]="false" 
+        [resizable]="false" styleClass="customer-edit-dialog shadow-4 border-none"
+        (onHide)="onClose()">
+        
+        <div class="overflow-y-auto" style="max-height: calc(90vh - 200px);">
+            <div class="p-4" *ngIf="user">
+                <!-- Reusable Profile Form -->
+                <app-profile-form 
+                    [user]="user" 
+                    [roleOptions]="roleOptions"
+                    [statusOptions]="statusOptions"
+                    mode="edit">
+                </app-profile-form>
 
-      <!-- Info -->
-      <h2 class="text-xl font-bold mb-2 text-center">{{ customer.name }}</h2>
-      <p class="text-center text-gray-600"><strong>Email:</strong> {{ customer.email }}</p>
-      <p class="text-center"><strong>Lead Source:</strong> {{ customer.leadSource }}</p>
-      <p class="text-center"><strong>Status:</strong> {{ customer.status }}</p>
-      <p class="text-center"><strong>Online:</strong> {{ customer.online ? 'Yes' : 'No' }}</p>
+            </div>
+        </div>
 
-      <!-- Actions -->
-      <div class="flex gap-2 mt-3 justify-center">
-        <button 
-          pButton 
-          label="Close" 
-          class="p-button-secondary"
-          (click)="ref.close()">
-        </button>
-      </div>
-    </p-card>
+        <ng-template pTemplate="footer">
+            <div class="flex justify-content-between gap-2 pt-3">
+                <p-button label="ยกเลิก" [text]="true" severity="secondary" (onClick)="onClose()"
+                    icon="pi pi-times" styleClass="p-button-sm font-semibold"></p-button>
+                <p-button label="บันทึกข้อมูล" severity="success" size="small" (onClick)="onSave()"
+                    icon="pi pi-check" styleClass="font-semibold shadow-2" [loading]="loading"></p-button>
+            </div>
+        </ng-template>
+    </p-dialog>
   `,
 })
 export class UserInfoModalComponent implements OnInit {
-  customer: Customer | null = null;
+  @Input() visible: boolean = false;
+  @Input() user: any = null;
+  @Input() roleOptions: any[] = [];
+  @Input() statusOptions: any[] = [];
+  @Input() loading: boolean = false;
 
-  constructor(public ref: DynamicDialogRef, public config: DynamicDialogConfig) {}
+  @Output() visibleChange = new EventEmitter<boolean>();
+  @Output() save = new EventEmitter<any>();
 
-  ngOnInit(): void {
-    this.customer = this.config.data?.customer ?? null;
+  constructor() {}
+
+  ngOnInit(): void {}
+
+  onClose() {
+    this.visible = false;
+    this.visibleChange.emit(this.visible);
+  }
+
+  onSave() {
+    if (this.user) {
+      this.save.emit(this.user);
+    }
   }
 }

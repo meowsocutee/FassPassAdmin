@@ -28,6 +28,7 @@ import { UserManagementService, UserManagementResponse } from '../service/user-m
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { UserUtils } from '../utils/user-utils';
 import { DateRangePickerComponent } from '../components/date-range-picker/date-range-picker.component';
+import { UserInfoModalComponent } from './user-info-modal/user-info-modal.component';
 
 interface User {
   id: string;
@@ -72,7 +73,9 @@ interface User {
     ToastModule,
     CheckboxModule,
     InputNumberModule,
-    DateRangePickerComponent
+    InputNumberModule,
+    DateRangePickerComponent,
+    UserInfoModalComponent
   ],
   templateUrl: './customer.component.html',
   styles: [`
@@ -136,6 +139,15 @@ export class CustomerComponent implements OnInit {
   loading: boolean = false;
   rowsPerPageOptions: number[] = [10, 20, 50];
   imageErrors: Set<string> = new Set();
+
+  // Edit User State
+  displayEditDialog: boolean = false;
+  editingUser: User | null = null;
+  statusOptions = [
+    { label: 'Active', value: 'Active' },
+    { label: 'Pending', value: 'Pending' },
+    { label: 'Blacklist', value: 'Blacklist' }
+  ];
 
   constructor(
     private userManagementService: UserManagementService,
@@ -382,49 +394,8 @@ export class CustomerComponent implements OnInit {
 
   // --- New Actions ---
 
-  displayEditDialog: boolean = false;
-  editingUser: User | null = null;
+  // --- New Actions ---
 
-  editUser(user: User) {
-    this.editingUser = { ...user };
-    this.displayEditDialog = true;
-  }
-
-  async saveUser() {
-    if (this.editingUser) {
-      this.loading = true;
-      try {
-        const fullName = `${this.editingUser.firstName} ${this.editingUser.lastName}`.trim();
-
-        const { error } = await this.supabase
-          .from('profiles')
-          .update({
-            name: fullName,
-            email: this.editingUser.email,
-            phone: this.editingUser.phone,
-            role: this.editingUser.role
-            // Add other fields if they exist in your table, e.g., company: this.editingUser.company
-          })
-          .eq('id', this.editingUser.id);
-
-        if (error) throw error;
-
-        const index = this.allUsers.findIndex(u => u.id === this.editingUser!.id);
-        if (index !== -1) {
-          this.allUsers[index] = { ...this.editingUser };
-          this.allUsers = [...this.allUsers]; // Trigger change detection
-          this.messageService.add({ severity: 'success', summary: 'สำเร็จ', detail: 'อัปเดตข้อมูลผู้ใช้เรียบร้อยแล้ว' });
-        }
-        this.displayEditDialog = false;
-        this.editingUser = null;
-      } catch (error: any) {
-        console.error('Error updating user:', error);
-        this.messageService.add({ severity: 'error', summary: 'ข้อผิดพลาด', detail: 'ไม่สามารถอัปเดตข้อมูลได้: ' + (error.message || error) });
-      } finally {
-        this.loading = false;
-      }
-    }
-  }
 
   toggleBlacklist(user: User) {
     const isCurrentlyBlacklisted = user.status === 'Blacklist';
@@ -520,4 +491,44 @@ export class CustomerComponent implements OnInit {
       }
     });
   }
-}
+
+  editUser(user: User) {
+    this.editingUser = { ...user };
+    this.displayEditDialog = true;
+  }
+
+  async saveUser(updatedUser: User) {
+    this.loading = true;
+    try {
+      const { error } = await this.supabase
+        .from('profiles')
+        .update({
+          name: `${updatedUser.firstName} ${updatedUser.lastName}`.trim(),
+          phone: updatedUser.phone,
+          email: updatedUser.email,
+          role: updatedUser.role
+        })
+        .eq('id', updatedUser.id);
+
+      if (error) throw error;
+
+      const index = this.allUsers.findIndex(u => u.id === updatedUser.id);
+      if (index !== -1) {
+        this.allUsers[index] = { ...updatedUser };
+        this.updateFilteredUsers();
+      }
+
+      this.messageService.add({ severity: 'success', summary: 'สำเร็จ', detail: 'บันทึกข้อมูลผู้ใช้เรียบร้อยแล้ว' });
+      this.displayEditDialog = false;
+    } catch (error: any) {
+      console.error('Error saving user:', error);
+      this.messageService.add({ severity: 'error', summary: 'ข้อผิดพลาด', detail: 'ไม่สามารถบันทึกข้อมูลได้: ' + (error.message || error) });
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  onAdd() {
+    this.messageService.add({ severity: 'info', summary: 'Info', detail: 'out of scope' });
+  }
+}

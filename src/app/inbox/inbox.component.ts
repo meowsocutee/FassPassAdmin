@@ -24,6 +24,8 @@ import { ParkingHistoryItem } from '../models/parking-history.model';
 import { SiteStateService } from '../service/site/site-state.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
     
 @Component({
   selector: 'app-inbox',
@@ -43,7 +45,8 @@ import { takeUntil } from 'rxjs/operators';
     IconFieldModule,
     InputIconModule,
     HttpClientModule,
-    ProgressSpinnerModule
+    ProgressSpinnerModule,
+    ToastModule
   ],
   templateUrl: './inbox.component.html',
   styleUrls: ['./inbox.component.css']
@@ -79,7 +82,8 @@ export class InboxComponent implements OnInit {
 
   constructor(
     private parkingService: ParkingService,
-    private siteState: SiteStateService
+    private siteState: SiteStateService,
+    private messageService: MessageService
   ) { }
 
   private refreshInterval: any;
@@ -370,5 +374,9 @@ export class InboxComponent implements OnInit {
       case 'ไม่มีข้อมูล': return 'secondary';
       default: return 'info';
     }
+  }
+
+  onAdd() {
+    this.messageService.add({ severity: 'info', summary: 'Info', detail: 'out of scope' });
   }
 }

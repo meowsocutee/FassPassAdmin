@@ -53,33 +53,28 @@
 
 <p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>
 
-<p-dialog [(visible)]="myAccountVisible" [modal]="true" [style]="{width: '50vw', minWidth: '400px'}" header="My Account" [draggable]="false" [resizable]="false">
-    <div class="p-fluid">
-        <h3 class="mt-0 mb-4 text-700">Profile Information</h3>
-        <div class="formgrid grid">
-            <div class="field col-12 md:col-6">
-                <label for="firstName" class="font-medium">First Name</label>
-                <input pInputText id="firstName" type="text" value="Admin" readonly disabled class="w-full bg-gray-100 text-600 font-medium" />
-            </div>
-            <div class="field col-12 md:col-6">
-                <label for="lastName" class="font-medium">Last Name</label>
-                <input pInputText id="lastName" type="text" value="FastPass" readonly disabled class="w-full bg-gray-100 text-600 font-medium" />
-            </div>
-            <div class="field col-12 md:col-6">
-                <label for="email" class="font-medium">Email</label>
-                <input pInputText id="email" type="email" value="admin@fastpass.com" readonly disabled class="w-full bg-gray-100 text-600 font-medium" />
-            </div>
-            <div class="field col-12 md:col-6">
-                <label for="role" class="font-medium">Role</label>
-                <input pInputText id="role" type="text" value="Super Administrator" readonly disabled class="w-full bg-gray-100 text-600 font-medium" />
-            </div>
-            <div class="field col-12 md:col-6">
-                <label for="status" class="font-medium">Status</label>
-                <input pInputText id="status" type="text" value="Enabled" readonly disabled class="w-full bg-gray-100 text-600 font-medium" />
-            </div>
+<!-- My Account Dialog -->
+<p-dialog [(visible)]="myAccountVisible" 
+          header="My Account" 
+          [modal]="true" 
+          [style]="{width: '750px', maxHeight: '90vh'}" 
+          [draggable]="false" 
+          [resizable]="false" 
+          styleClass="customer-edit-dialog shadow-4 border-none">
+    
+    <div class="overflow-y-auto" style="max-height: calc(90vh - 200px);">
+        <div class="p-4">
+            <app-profile-form 
+                [user]="tempProfile" 
+                [roleOptions]="roleOptions" 
+                mode="view">
+            </app-profile-form>
         </div>
     </div>
+
+    <!-- No footer buttons for My Account view as per image -->
 </p-dialog>
+
 
 <!-- Standalone Layout for Login/Forgot Password -->
 <div *ngIf="isStandaloneLayout" class="h-screen w-full m-0 p-0 overflow-hidden">

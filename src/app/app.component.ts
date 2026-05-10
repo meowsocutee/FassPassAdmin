@@ -28,6 +28,7 @@ import { AuthService } from './service/auth.service';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { UserUtils } from './utils/user-utils';
+import { ProfileFormComponent } from './components/profile-form/profile-form.component';
 
 @Component({
   selector: 'app-root',
@@ -49,7 +50,8 @@ import { UserUtils } from './utils/user-utils';
     MenuModule,
     ConfirmDialogModule,
     DialogModule,
-    InputTextModule
+    InputTextModule,
+    ProfileFormComponent
   ],
   providers: [ConfirmationService, MessageService],
   templateUrl: './app.component.html',
@@ -61,10 +63,13 @@ export class AppComponent implements OnInit, OnDestroy {
   sidebarVisible: boolean = false;
 
   currentUserProfile = {
-    firstName: 'Fast',
-    lastName: 'Pass',
-    role: 'Administrator',
-    image: '', // Remove image to show fallback initials as in the picture
+    firstName: 'Admin',
+    lastName: 'FastPass',
+    email: 'admin@fastpass.com',
+    role: 'Super Admin',
+    status: 'Active',
+    phone: '081-234-5678',
+    image: '', 
     imageError: false
   };
 
@@ -76,6 +81,15 @@ export class AppComponent implements OnInit, OnDestroy {
     { label: 'KMUTT2', value: 'kmutt2' }
   ];
 
+  roleOptions = [
+    { label: 'Super Admin', value: 'Super Admin' },
+    { label: 'Admin', value: 'Admin' },
+    { label: 'Check Admin', value: 'Check Admin' },
+    { label: 'Invite Admin', value: 'Invite Admin' },
+    { label: 'Employee', value: 'Employee' },
+    { label: 'User', value: 'User' }
+  ];
+
   topMenu: any[] = [];
 
   supabase = createClient(
@@ -85,6 +99,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   profileMenuItems: MenuItem[] = [];
   myAccountVisible: boolean = false;
+  tempProfile: any = {};
 
   constructor(
     public router: Router,
@@ -146,6 +161,9 @@ export class AppComponent implements OnInit, OnDestroy {
       });
     }
 
+    // Sync Profile with Mock Data/AuthService
+    this.syncProfileWithAuth();
+
 
     this.topMenu = [
       { label: 'หน้าหลัก', icon: 'pi pi-home', route: '/dashboard' },
@@ -160,7 +178,7 @@ export class AppComponent implements OnInit, OnDestroy {
         label: 'My Account',
         icon: 'pi pi-user',
         command: () => {
-          this.myAccountVisible = true;
+          this.openMyAccount();
         }
       },
       {
@@ -229,5 +247,46 @@ export class AppComponent implements OnInit, OnDestroy {
 
   handleImageError() {
     this.currentUserProfile.imageError = true;
+  }
+
+  private syncProfileWithAuth() {
+    const user = this.authService.getCurrentUser();
+    if (user) {
+      const nameParts = user.name.split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      this.currentUserProfile = {
+        firstName: firstName,
+        lastName: lastName,
+        email: user.email,
+        role: this.formatRole(user.role),
+        status: 'Active',
+        phone: '081-234-5678', // Default for mock if not in object
+        image: '',
+        imageError: false
+      };
+    }
+  }
+
+  private formatRole(role: string): string {
+    switch (role) {
+      case 'super_admin': return 'Super Admin';
+      case 'admin': return 'Admin';
+      case 'user': return 'User';
+      default: return role;
+    }
+  }
+
+  openMyAccount() {
+    // Re-sync just in case it changed
+    this.syncProfileWithAuth();
+    this.tempProfile = { ...this.currentUserProfile };
+    this.myAccountVisible = true;
+  }
+
+  saveProfile() {
+    this.currentUserProfile = { ...this.tempProfile };
+    this.myAccountVisible = false;
   }
 }

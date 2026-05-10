@@ -1,8 +1,9 @@
+  <p-toast></p-toast>
   <!-- Main Content -->
   <div class="inbox-content p-card">
     <div class="inbox-header">
-      <h3>Inbox</h3>
-      <button pButton label="New Mail" icon="pi pi-envelope" class="p-button-sm p-button-info"></button>
+      <h3>{{ title }}</h3>
+      <button pButton [label]="buttonLabel" icon="pi pi-plus" class="p-button-sm p-button-info" (click)="onAdd()"></button>
     </div>
 
     <p-table [value]="messages" [paginator]="true" [rows]="10" 
