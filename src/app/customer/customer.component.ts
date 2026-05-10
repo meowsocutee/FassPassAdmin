@@ -27,7 +27,6 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { UserManagementService, UserManagementResponse } from '../service/user-management.service';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { UserUtils } from '../utils/user-utils';
-import { DateRangePickerComponent } from '../components/date-range-picker/date-range-picker.component';
 import { UserInfoModalComponent } from './user-info-modal/user-info-modal.component';
 
 interface User {
@@ -65,7 +64,6 @@ interface User {
     AvatarModule,
     TagModule,
     TooltipModule,
-    TooltipModule,
     BadgeModule,
     ProgressSpinnerModule,
     DialogModule,
@@ -73,8 +71,6 @@ interface User {
     ToastModule,
     CheckboxModule,
     InputNumberModule,
-    InputNumberModule,
-    DateRangePickerComponent,
     UserInfoModalComponent
   ],
   templateUrl: './customer.component.html',
