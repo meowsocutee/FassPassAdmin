@@ -169,8 +169,7 @@ export class AppComponent implements OnInit, OnDestroy {
       { label: 'หน้าหลัก', icon: 'pi pi-home', route: '/dashboard' },
       { label: 'อาคาร', icon: 'pi pi-building', route: '/buildings' },
       { label: 'จัดการการจอง', icon: 'pi pi-th-large', route: '/reserve' },
-      { label: 'จัดการผู้ใช้งาน', icon: 'pi pi-user', route: '/customer' },
-      { label: 'สิทธิ์การใช้งาน', icon: 'pi pi-shield', route: '/permissions', roles: ['admin', 'super_admin'] },
+      { label: 'จัดการผู้ใช้งาน', icon: 'pi pi-user', route: '/customer' }
     ];
 
     this.profileMenuItems = [

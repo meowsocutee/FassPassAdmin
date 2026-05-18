@@ -61,11 +61,11 @@
                             <i class="pi pi-check-circle"></i>
                             <span class="font-bold hidden sm:inline">กิจกรรมปกติ (Normal)</span>
                             <span class="font-bold sm:hidden">Normal</span>
-                            <p-badge [value]="normalActivities.length.toString()" severity="success" styleClass="ml-1"></p-badge>
+                            <p-badge [value]="normalActivitiesList.length.toString()" severity="success" styleClass="ml-1"></p-badge>
                         </div>
                     </ng-template>
 
-                <p-table [value]="normalActivities" [paginator]="true" [rows]="10" 
+                <p-table [value]="normalActivitiesList" [paginator]="true" [rows]="10" 
                     [(first)]="firstNormal" [rowsPerPageOptions]="rowsPerPageOptions"
                     [showCurrentPageReport]="true" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
                     responsiveLayout="scroll" styleClass="p-datatable-sm">
@@ -130,11 +130,11 @@
                             <i class="pi pi-exclamation-triangle"></i>
                             <span class="font-bold hidden sm:inline">สิ่งที่ต้องตรวจสอบ (Abnormal)</span>
                             <span class="font-bold sm:hidden">Abnormal</span>
-                            <p-badge [value]="abnormalActivities.length.toString()" severity="danger" styleClass="ml-1"></p-badge>
+                            <p-badge [value]="abnormalActivitiesList.length.toString()" severity="danger" styleClass="ml-1"></p-badge>
                         </div>
                     </ng-template>
 
-                    <p-table [value]="abnormalActivities" [paginator]="true" [rows]="10" 
+                    <p-table [value]="abnormalActivitiesList" [paginator]="true" [rows]="10" 
                         [(first)]="firstAbnormal" [rowsPerPageOptions]="rowsPerPageOptions"
                         [showCurrentPageReport]="true" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
                         responsiveLayout="scroll" styleClass="p-datatable-sm">

@@ -29,9 +29,9 @@ import { SiteStateService } from '../service/site/site-state.service';
 import { UserUtils } from '../utils/user-utils';
 import { DateRangePickerComponent } from '../components/date-range-picker/date-range-picker.component';
 
-// ✅ เพิ่ม Import สำหรับ RxJS Timer
-import { timer, Subject, Subscription } from 'rxjs';
-import { switchMap, takeUntil, tap } from 'rxjs/operators';
+// ✅ เพิ่ม Import สำหรับ RxJS Subject และ Operators
+import { Subject, of } from 'rxjs';
+import { switchMap, takeUntil, tap, debounceTime, catchError } from 'rxjs/operators';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
@@ -70,11 +70,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
   rowsPerPageOptions: number[] = [10, 20, 50];
   searchTerm: string = '';
 
-  // ✅ ตัวแปรสำหรับจัดการ Auto Refresh
-  private refreshSub?: Subscription;
-  private refreshInterval = 10000; // Refresh ทุกๆ 10 วินาที
+  // ✅ ตัวแปรสำหรับจัดการ Request แบบ Event-Driven
   private token: string | null = null;
   private destroy$ = new Subject<void>();
+  private fetchSubject = new Subject<{ startDate: string | null, endDate: string | null, siteId: string, search: string }>();
+
+  normalActivitiesList: ActivityLog[] = [];
+  abnormalActivitiesList: ActivityLog[] = [];
 
   constructor(
     private dashboardService: DashboardService,
@@ -94,59 +96,69 @@ export class DashboardComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // เมื่อ Site เปลี่ยน ให้เริ่มการ Refresh ใหม่
+    // 2 & 3 & 4. ยิง API โดยใช้ Subject + debounceTime + switchMap เพื่อป้องกันการยิงซ้ำซ้อน
+    this.fetchSubject.pipe(
+      takeUntil(this.destroy$),
+      debounceTime(400),
+      tap(() => this.loading = true),
+      switchMap((params) => {
+        return this.dashboardService.getAllActivities(params.startDate, params.endDate, params.siteId, this.token!).pipe(
+          catchError(err => {
+            console.error('Fetch error:', err);
+            return of(null);
+          })
+        );
+      })
+    ).subscribe({
+      next: (res: any) => {
+        if (res) {
+          this.processResponse(res);
+          this.filterActivities();
+        }
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Polling error:', err);
+        this.loading = false;
+      }
+    });
+
+    // โหลดครั้งแรกเมื่อระบุ Site
     this.siteStateService.site$
       .pipe(takeUntil(this.destroy$))
       .subscribe(siteId => {
         if (this.token) {
-          this.allActivities = []; // ล้างข้อมูลเก่าก่อน
-          this.firstNormal = 0;
-          this.firstAbnormal = 0;
-          this.startAutoRefresh(siteId);
+          this.triggerFetch();
         }
       });
   }
 
-  // ✅ ฟังก์ชันสำหรับเริ่มการดึงข้อมูลแบบ Auto Refresh
-  startAutoRefresh(siteId: string) {
-    if (this.refreshSub) this.refreshSub.unsubscribe(); // ลบ Timer เก่าทิ้ง
+  // ✅ ฟังก์ชันสำหรับดึงข้อมูลเฉพาะเมื่อจำเป็น
+  triggerFetch() {
+    let startDate: string | null = null;
+    let endDate: string | null = null;
 
-    this.refreshSub = timer(0, this.refreshInterval)
-      .pipe(
-        takeUntil(this.destroy$),
-        tap(() => {
-          // โชว์ Loading เฉพาะตอนที่ข้อมูลยังว่างเปล่า (โหลดครั้งแรก หรือเปลี่ยน Filter)
-          if (this.allActivities.length === 0) {
-            this.loading = true;
-          }
-        }),
-        switchMap(() => {
-          let startDate: string | null = null;
-          let endDate: string | null = null;
+    if (this.selectedRange && this.selectedRange[0]) {
+      const d = this.selectedRange[0];
+      startDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      if (this.selectedRange[1]) {
+        const d2 = this.selectedRange[1];
+        endDate = `${d2.getFullYear()}-${String(d2.getMonth() + 1).padStart(2, '0')}-${String(d2.getDate()).padStart(2, '0')}`;
+      }
+    }
+    
+    this.fetchSubject.next({ 
+        startDate, 
+        endDate, 
+        siteId: this.siteStateService.getCurrentSite(), 
+        search: this.searchTerm 
+    });
+  }
 
-          if (this.selectedRange && this.selectedRange[0]) {
-            const d = this.selectedRange[0];
-            startDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-            
-            if (this.selectedRange[1]) {
-              const d2 = this.selectedRange[1];
-              endDate = `${d2.getFullYear()}-${String(d2.getMonth() + 1).padStart(2, '0')}-${String(d2.getDate()).padStart(2, '0')}`;
-            }
-          }
-          // คืนค่า Observable ของ Request (ยังไม่ subscribe ตรงนี้)
-          return this.dashboardService.getAllActivities(startDate, endDate, siteId, this.token!);
-        })
-      )
-      .subscribe({
-        next: (res: any) => {
-          this.processResponse(res); // นำข้อมูลไปแปลงรูปร่าง
-          this.loading = false;      // ปิด Loading
-        },
-        error: (err) => {
-          console.error('Polling error:', err);
-          this.loading = false;
-        }
-      });
+  // ✅ ฟังก์ชันคัดกรองข้อมูล
+  private filterActivities() {
+    this.normalActivitiesList = this.allActivities.filter(a => a.category === 'normal' && this.matchesSearch(a) && this.matchesDate(a));
+    this.abnormalActivitiesList = this.allActivities.filter(a => a.category === 'abnormal' && this.matchesSearch(a) && this.matchesDate(a));
   }
 
   // ✅ แยก Logic การจัดการข้อมูล (Parse JSON) ออกมาเพื่อให้ `startAutoRefresh` ดูสะอาด
@@ -351,13 +363,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return d;
   }
 
-  get normalActivities() {
-    return this.allActivities.filter(a => a.category === 'normal' && this.matchesSearch(a) && this.matchesDate(a));
-  }
 
-  get abnormalActivities() {
-    return this.allActivities.filter(a => a.category === 'abnormal' && this.matchesSearch(a) && this.matchesDate(a));
-  }
 
   private matchesDate(a: ActivityLog): boolean {
     if (!this.selectedRange || !this.selectedRange[0]) return true;
@@ -386,6 +392,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   onSearch() {
     this.firstNormal = 0;
     this.firstAbnormal = 0;
+    this.triggerFetch();
   }
 
   viewUserHistory(userName: string) {
@@ -464,15 +471,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return map[type] || type;
   }
 
-  // ✅ แก้ไข onRangeChange ให้มาเรียก startAutoRefresh
   onRangeChange(range: Date[] | null) {
     this.selectedRange = range;
-    const siteId = this.siteStateService.getCurrentSite();
+    this.firstNormal = 0;
+    this.firstAbnormal = 0;
     if (this.token) {
-      this.allActivities = []; // สั่งเคลียร์เพื่อให้ Loading หมุน
-      this.firstNormal = 0;
-      this.firstAbnormal = 0;
-      this.startAutoRefresh(siteId);
+      this.allActivities = []; 
+      this.triggerFetch();
     }
   }
 
@@ -535,9 +540,5 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-    // ✅ ทำลาย Timer เมื่อปิด Component เพื่อป้องกัน Memory Leak
-    if (this.refreshSub) {
-      this.refreshSub.unsubscribe();
-    }
   }
 }
